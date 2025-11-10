@@ -11,6 +11,20 @@ public class MainFrame {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setVisible(true);
+
+            JLabel label = new JLabel("Choose Location");
+            JButton button = new JButton("Address");
+            JButton button1 = new JButton("Map");
+
+            JPanel panel = new JPanel();
+            panel.add(label);
+            panel.add(button);
+            panel.add(button1);
+
+            frame.getContentPane().add(panel);
+
+            frame.pack();
+            frame.setVisible(true);
         });
     }
 }
