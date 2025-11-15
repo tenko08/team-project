@@ -5,7 +5,7 @@ public class Bus {
     public String routeId;
     private double latitude;
     private double longitude;
-    private int occupancy;
+    private String occupancy;
     private String timestamp;
 
     public Bus() {
@@ -14,12 +14,12 @@ public class Bus {
         this.routeId = "";
         this.latitude = 0.0;
         this.longitude = 0.0;
-        this.occupancy = 0;
+        this.occupancy = "";
         this.timestamp = "";
     }
 
     // 原有的有参构造函数
-    public Bus(int id, String routeId, double latitude, double longitude, int occupancy, String timestamp) {
+    public Bus(int id, String routeId, double latitude, double longitude, String occupancy, String timestamp) {
         this.id = id;
         this.routeId = routeId;
         this.latitude = latitude;
@@ -40,7 +40,7 @@ public class Bus {
     public double getLongitude(){
         return longitude;
     }
-    public int getOccupancy() {
+    public String getOccupancy() {
         return occupancy;
     }
     public String getTimestamp(){

@@ -1,51 +1,44 @@
 package app;
 
-import entities.*;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
-
+import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.OSMTileFactoryInfo;
+import org.jxmapviewer.viewer.DefaultTileFactory;
+import org.jxmapviewer.viewer.GeoPosition;
+import org.jxmapviewer.viewer.TileFactoryInfo;
 
 public class MainFrame {
+    private static final String TITLE = "Real-Time TTC Map Viewer";
+    private static final double LAT = 43.65;
+    private static final double LON = -79.38;
 
-        public static void main(String[] args) {
-                List<Route> routes = new ArrayList<Route>();
-                Route route929 = new Route(929);
-                route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
-                                new Position(43.800546, -79.334889)));
+    public static void main(String[] args) {
+        JXMapViewer mapViewer = new JXMapViewer();
 
-                route929.addTrip(new Trip(57459020, route929, new Bus(3640,
-                                new Position(43.722424, -79.41525, 254, 0),
-                                "UNKNOWN"))); // Initial occupancy unknown, will be fetched
+        // Create a TileFactoryInfo for OpenStreetMap
+        TileFactoryInfo info = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
+        DefaultTileFactory tileFactory = new DefaultTileFactory(info);
+        tileFactory.setUserAgent("TTC Map Viewer/1.0 (contact: michaeld.kim@mail.utoronto.ca)");
+        mapViewer.setTileFactory(tileFactory);
 
-                route929.addTrip(new Trip(11854020, route929, new Bus(3630,
-                                new Position(43.723186, -79.49693, 74, 0),
-                                "UNKNOWN")));
+        // Use 8 threads in parallel to load the tiles
+        tileFactory.setThreadPoolSize(8);
 
-                route929.addTrip(new Trip(36126020, route929, new Bus(3632,
-                                new Position(43.70988, -79.474144, 253, 0),
-                                "UNKNOWN")));
+        // Set the focus
+        GeoPosition toronto = new GeoPosition(LAT, LON);
 
-                routes.add(route929);
+        mapViewer.setZoom(7);
+        mapViewer.setAddressLocation(toronto);
 
-                SwingUtilities.invokeLater(() -> {
-                        AppBuilder appBuilder = new AppBuilder();
-                        JFrame app = appBuilder
-                                        .addMapView()
-                                        .addMapUseCase()
-                                        .addOccupancyView()
-                                        .addOccupancyUseCase()
-                                        .build();
-
-                        // Trigger occupancy check for the route
-                        appBuilder.getOccupancyController().execute(route929);
-
-                        app.setMinimumSize(new java.awt.Dimension(400, 300));
-                        app.pack();
-                        app.setLocationRelativeTo(null);
-                        app.setVisible(true);
-                });
-
-        }
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame(TITLE);
+            frame.getContentPane().add(mapViewer);
+            frame.setMinimumSize(new java.awt.Dimension(300, 200));
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.pack();
+            frame.setVisible(true);
+        });
+    }
 }
