@@ -1,18 +1,18 @@
 package use_case.occupancy;
 
-import entities.Bus;
+import entities.Route;
 
 /**
  * The Input Data for the Occupancy use case.
  */
 public class OccupancyInputData {
-    private final Bus bus;
+    private final Route route;
 
-    public OccupancyInputData(Bus bus) {
-        this.bus = bus;
+    public OccupancyInputData(Route route) {
+        this.route = route;
     }
 
-    Bus getBus() {
-        return bus;
+    public Route getRoute() {
+        return route;
     }
 }
