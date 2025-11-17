@@ -13,7 +13,6 @@ import java.util.Random;
 import com.google.transit.realtime.GtfsRealtime;
 
 import entities.Bus;
-import entities.Position;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -44,8 +43,11 @@ public class BusDataBaseAPI implements BusDataBase {
             for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
 //                System.out.println(entity);
                 int vehicleId = -1;
-                Position position = null;
-                String occupancy = "UNKNOWN";
+                String routeId = "";
+                double latitude = 0.0;
+                double longitude = 0.0;
+                int occupancy = 0;
+                String timestamp = "";
 
                 if (entity.hasVehicle()) {
                     GtfsRealtime.VehiclePosition vp = entity.getVehicle();
@@ -54,18 +56,28 @@ public class BusDataBaseAPI implements BusDataBase {
                         vehicleId = Integer.parseInt(vp.getVehicle().getId());
                     }
 
-                    if (vp.hasVehicle() && vp.hasPosition()) {
-                        position = new Position(vp.getPosition().getLatitude(), vp.getPosition().getLongitude(), vp.getPosition().getBearing(),
-                                vp.getPosition().getSpeed());
-
+                    if (vp.hasTrip() && vp.getTrip().hasRouteId()) {
+                        routeId = vp.getTrip().getRouteId();
                     }
 
-                    if (vp.hasVehicle() && vp.hasOccupancyStatus()) {
-                        occupancy = String.valueOf(vp.getOccupancyStatus());
+                    if (vp.hasPosition()) {
+                        latitude = vp.getPosition().getLatitude();
+                        longitude = vp.getPosition().getLongitude();
+                    }
+
+                    if (vp.hasOccupancyStatus()) {
+                        // Convert occupancy status to int (0 = empty, 1 = many seats, 2 = few seats, 3 = standing room only, 4 = crushed standing room only, 5 = full)
+                        occupancy = vp.getOccupancyStatus().getNumber();
+                    }
+
+                    if (vp.hasTimestamp()) {
+                        timestamp = String.valueOf(vp.getTimestamp());
+                    } else {
+                        timestamp = String.valueOf(System.currentTimeMillis() / 1000);
                     }
 
                 }
-                Bus bus = new Bus(vehicleId, position, occupancy);
+                Bus bus = new Bus(vehicleId, routeId, latitude, longitude, occupancy, timestamp);
                 buses.add(bus);
             }
 

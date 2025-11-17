@@ -1,62 +1,49 @@
 package entities;
 
 public class Bus {
-    private int id;
-    private Position position;
-    private String occupancy;
+    private int id ;
+    public String routeId;
+    private double latitude;
+    private double longitude;
+    private int occupancy;
+    private String timestamp;
 
-    public Bus(int id, Position position, String occupancy) {
-        this.id = id;
-        this.position = position;
-        this.occupancy = occupancy;
+    public Bus() {
+        // 可以设置默认值或留空
+        this.id = 0;
+        this.routeId = "";
+        this.latitude = 0.0;
+        this.longitude = 0.0;
+        this.occupancy = 0;
+        this.timestamp = "";
     }
 
-    // --- Getters ---
-    public int getId() {
+    // 原有的有参构造函数
+    public Bus(int id, String routeId, double latitude, double longitude, int occupancy, String timestamp) {
+        this.id = id;
+        this.routeId = routeId;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.occupancy = occupancy;
+        this.timestamp = timestamp;
+    }
+
+    public int getId(){
         return id;
     }
-
-    public Position getPosition() {
-        return position;
+    public String getRouteId(){
+        return routeId;
     }
-
-    public String getOccupancy() {
+    public double getLatitude(){
+        return latitude;
+    }
+    public double getLongitude(){
+        return longitude;
+    }
+    public int getOccupancy() {
         return occupancy;
     }
-
-    // --- Setters ---
-//    public void setId(String id) { idk if we need these
-//        this.id = id;
-//    }
-//
-//    public void setRoute(Route route) {
-//        this.route = route;
-//    }
-
-    public void setPosition(Position position) {
-        this.position = position;
-    }
-
-    public void setOccupancy(String occupancy) {
-        this.occupancy = occupancy;
-    }
-
-    // --- Utility ---
-    public boolean isEmpty() {
-        return "EMPTY".equalsIgnoreCase(occupancy);
-    }
-
-//    public boolean matchesRoute(int routeNumber) {
-//        return trip != null && routeNumber  == trip.getRouteNumber();
-//    }
-
-    @Override
-    public String toString() {
-        return "Vehicle{" +
-                "id='" + id + '\'' +
-//                ", route=" + trip +
-                ", position=" + position +
-                ", occupancy='" + occupancy + '\'' +
-                '}';
+    public String getTimestamp(){
+        return timestamp;
     }
 }
