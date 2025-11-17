@@ -1,7 +1,10 @@
 package use_case.map;
 
+import java.io.File;
+
 /**
  * DAO interface for the Map Use Case.
  */
-public class MapDataAccessInterface {
+public interface MapDataAccessInterface {
+    File getCacheDir();
 }

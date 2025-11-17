@@ -1,8 +1,11 @@
 package app;
 
+import data_access.CacheAccessObject;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
+import use_case.map.MapInputBoundary;
+import use_case.map.MapInteractor;
 import view.MapView;
 import view.ViewManager;
 import use_case.map.MapOutputBoundary;
@@ -17,7 +20,10 @@ public class AppBuilder extends JFrame {
     final ViewManagerModel viewManagerModel = new ViewManagerModel();
     ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
-    // For other views: add
+    // DAO using file cache
+    final CacheAccessObject cacheAccessObject = new CacheAccessObject();
+
+    // For other views: declare view and view model, then implement methods to add view and use case interactor
     private MapView mapView;
     private MapViewModel mapViewModel;
 
@@ -32,6 +38,7 @@ public class AppBuilder extends JFrame {
 
     public AppBuilder addMapUseCase() {
         final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);
+        final MapInputBoundary MapInteractor = new MapInteractor(cacheAccessObject, mapOutputBoundary);
         return this;
     }
 
