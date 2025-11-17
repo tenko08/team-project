@@ -1,10 +1,10 @@
 package app;
 
+import entities.*;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 import entities.Route;
 
@@ -24,7 +24,6 @@ public class MainFrame {
         });
         List<Route> routes = new ArrayList<Route>();
         Route route929 = new Route(929);
-
         routes.add(route929);
 
     }
