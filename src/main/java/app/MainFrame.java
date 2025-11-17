@@ -16,6 +16,9 @@ public class MainFrame {
 //        });
 
         Route r = new Route(929);
+        r.addBusStop(new BusStop(1526,16,"Victoria Park Ave at Navaho Dr",
+                new Position(43.800546,-79.334889)));
+
         r.addTrip(new Trip(72598070, r, new Bus(9446,
                 new Position(43.65386, -79.43306, 164, 0),
                 "FEW_SEATS_AVAILABLE")));

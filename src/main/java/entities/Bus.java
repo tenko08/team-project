@@ -54,7 +54,7 @@ public class Bus {
     public String toString() {
         return "Vehicle{" +
                 "id='" + id + '\'' +
-                ", route=" + trip +
+//                ", route=" + trip +
                 ", position=" + position +
                 ", occupancy='" + occupancy + '\'' +
                 '}';

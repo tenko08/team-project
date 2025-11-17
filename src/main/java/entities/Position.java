@@ -15,6 +15,11 @@ public class Position {
         this.speed = speed;
     }
 
+    public Position(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     // --- Getters ---
     public double getLatitude() {
         return latitude;
