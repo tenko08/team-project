@@ -1,6 +1,8 @@
 package entities;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Route {
     private final int routeNumber;
@@ -8,6 +10,8 @@ public class Route {
     private List<BusStop> busStopList;
 
     public Route(int routeNumber) {
+        this.tripList = new ArrayList<Trip>();
+        this.busStopList = new ArrayList<BusStop>();
         this.routeNumber = routeNumber;
     }
 
@@ -32,6 +36,27 @@ public class Route {
         this.busStopList.add(busStop);
     }
 
+    // --- Utility ---
+    public BusStop nearestBusStop(Position position) {
+        double min = Double.MAX_VALUE;
+        BusStop nearest = null;
+        for (BusStop bs : this.busStopList) {
+            double dist = position.distanceTo(bs.getPosition());
+            if (dist < min) {
+                min = dist;
+                nearest = bs;
+            }
+        }
+        return nearest;
+    }
+    @Override
+    public String toString() {
+        return "Route{" +
+                "routeNum='" + routeNumber + '\'' +
+                ", tripListSize=" + tripList.size() +
+                ", busListSize='" + busStopList.size() + '\'' +
+                '}';
+    }
 
 
 }
