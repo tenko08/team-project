@@ -1,4 +1,12 @@
 package interface_adapter.map;
 
-public class MapPresenter {
+import interface_adapter.ViewManagerModel;
+import use_case.map.MapOutputBoundary;
+
+public class MapPresenter implements MapOutputBoundary {
+    private final MapViewModel mapViewModel;
+
+    public MapPresenter(MapViewModel mapViewModel) {
+        this.mapViewModel = mapViewModel;
+    }
 }

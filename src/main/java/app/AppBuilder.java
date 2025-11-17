@@ -1,26 +1,36 @@
 package app;
 
 import interface_adapter.ViewManagerModel;
+import interface_adapter.map.MapPresenter;
+import interface_adapter.map.MapViewModel;
 import view.MapView;
 import view.ViewManager;
+import use_case.map.MapOutputBoundary;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class AppBuilder extends JFrame {
-    private final Container cardPane = getContentPane();
+    private final JPanel cardPanel = new JPanel();
     private final CardLayout cardLayout = new CardLayout();
     private static final String TITLE = "Real-Time TTC Map Viewer";
     final ViewManagerModel viewManagerModel = new ViewManagerModel();
-    ViewManager viewManager = new ViewManager(cardPane, cardLayout, viewManagerModel);
+    ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
     private MapView mapView;
+    private MapViewModel mapViewModel;
 
-    public AppBuilder() { cardPane.setLayout(cardLayout); }
+    public AppBuilder() { cardPanel.setLayout(cardLayout); }
 
     public AppBuilder addMapView() {
-        mapView = new MapView();
-        cardPane.add(mapView, mapView.getViewName());
+        mapViewModel = new MapViewModel();
+        mapView = new MapView(mapViewModel);
+        cardPanel.add(mapView.getMapViewer());
+        return this;
+    }
+
+    public AppBuilder addMapUseCase() {
+        final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);
         return this;
     }
 
@@ -28,7 +38,7 @@ public class AppBuilder extends JFrame {
         final JFrame app = new JFrame(TITLE);
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        app.add(cardPane);
+        app.setContentPane(cardPanel);
 
         viewManagerModel.setState(mapView.getViewName()); // Default view
         viewManagerModel.firePropertyChange();
