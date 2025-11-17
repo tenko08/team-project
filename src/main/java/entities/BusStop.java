@@ -33,5 +33,18 @@ public class BusStop {
     public List<String> getRoutes() {
         return routes;
     }
-    
+
+    public Position getPosition() {
+        return position;
+    }
+
+    @Override
+    public String toString() {
+        return "BusStop{" +
+                "id='" + id + '\'' +
+                ", name=" + name + '\n' +
+                ", position=" + position + '\n'+
+                ", stopSeq='" + stopSequence + '\'' +
+                '}';
+    }
 }
