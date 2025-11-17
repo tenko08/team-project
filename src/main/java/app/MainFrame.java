@@ -2,6 +2,7 @@ package app;
 
 import javax.swing.*;
 
+
 public class MainFrame {
     private static final String TITLE = "Real-Time TTC Map Viewer";
     public static void main(String[] args) {
