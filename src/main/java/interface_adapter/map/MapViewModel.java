@@ -9,7 +9,7 @@ public class MapViewModel extends ViewModel<MapState> {
     public TileFactoryInfo info;
     public static final double LAT = 43.65;
     public static final double LON = -79.38;
-    public GeoPosition position = new GeoPosition(LAT, LON);
+    public GeoPosition toronto = new GeoPosition(LAT, LON);
 
     public MapViewModel() {
         super("map");
