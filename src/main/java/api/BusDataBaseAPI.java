@@ -2,7 +2,7 @@ package api;
 
 import entities.Bus;
 
-
+import com.google.transit.realtime.GtfsRealtime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,29 +17,40 @@ import java.io.IOException;
 
 
 public class BusDataBaseAPI implements BusDataBase {
-    private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles?debug";
-    private static final String STATUS_CODE = "status_code";
-    private static final int SUCCESS_CODE = 200;
+    private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
 
 
     @Override
     public Bus getBus(int id) {
-        final OkHttpClient client = new OkHttpClient().newBuilder().build();
+        final OkHttpClient client = new OkHttpClient();
 
         final Request request = new Request.Builder().url(API_URL).build();
 
         try {
             final Response response = client.newCall(request).execute();
-            final JSONObject responseBody = new JSONObject(response.body().string());
+            final byte[] bytes = response.body().bytes();
 
-            if (responseBody.getInt(STATUS_CODE) == SUCCESS_CODE) {
-                System.out.println(responseBody);
+            GtfsRealtime.FeedMessage feed =
+                    GtfsRealtime.FeedMessage.parseFrom(bytes);
+
+            System.out.println(feed);
+
+            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
+                System.out.println(entity);
+                if (entity.hasVehicle()) {
+                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
+
+                    if (vp.hasVehicle() && vp.getVehicle().hasId()) {
+
+                    }
+                }
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new Bus();
+        return new Bus(1);
     }
 
     @Override
@@ -48,6 +59,7 @@ public class BusDataBaseAPI implements BusDataBase {
     }
 
     public static void main(String[] args) {
+        new BusDataBaseAPI().getBus(5);
 
     }
 }
