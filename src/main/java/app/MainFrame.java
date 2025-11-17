@@ -10,6 +10,7 @@ public class MainFrame {
             AppBuilder appBuilder = new AppBuilder();
             JFrame app = appBuilder
                     .addMapView()
+                    .addMapUseCase()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();

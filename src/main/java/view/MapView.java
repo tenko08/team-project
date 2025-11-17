@@ -1,5 +1,6 @@
 package view;
 
+import interface_adapter.map.MapViewModel;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
 import org.jxmapviewer.viewer.DefaultTileFactory;
@@ -10,15 +11,20 @@ import javax.swing.*;
 
 public class MapView extends JPanel {
     private final String viewName = "map";
+    private final MapViewModel mapViewModel;
     private static final double LAT = 43.65;
     private static final double LON = -79.38;
+    private JXMapViewer mapViewer;
+    private TileFactoryInfo info;
+    private DefaultTileFactory tileFactory;
 
-    public MapView() {
-        JXMapViewer mapViewer = new JXMapViewer();
+    public MapView(MapViewModel mapViewModel) {
+        this.mapViewModel = mapViewModel;
+        mapViewer = new JXMapViewer();
 
         // Create a TileFactoryInfo for OpenStreetMap
-        TileFactoryInfo info = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
-        DefaultTileFactory tileFactory = new DefaultTileFactory(info);
+        info = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
+        tileFactory = new DefaultTileFactory(info);
         tileFactory.setUserAgent("TTC Map Viewer/1.0 (contact: michaeld.kim@mail.utoronto.ca)");
         mapViewer.setTileFactory(tileFactory);
 
@@ -32,6 +38,10 @@ public class MapView extends JPanel {
         mapViewer.setAddressLocation(toronto);
 
         this.add(mapViewer);
+    }
+
+    public JXMapViewer getMapViewer() {
+        return mapViewer;
     }
 
     public String getViewName() { return viewName; }
