@@ -13,81 +13,52 @@ import java.util.Random;
 import com.google.transit.realtime.GtfsRealtime;
 
 import entities.Bus;
-import entities.Position;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class BusDataBaseAPI implements BusDataBase {
-    private Map<String, Object> cachedData = new HashMap<>();
+    private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles?debug";
+    private static final String STATUS_CODE = "status_code";
+    private static final int SUCCESS_CODE = 200;
 
-    private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles";
+    private Map<String, Object> cachedData = new HashMap<>();
+    private OkHttpClient client;
+
+    public BusDataBaseAPI() {
+        this.client = new OkHttpClient().newBuilder()
+                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+    }
 
     @Override
-    public List<Bus> getAllBuses() {
-        final OkHttpClient client = new OkHttpClient();
-
+    public Bus getBus(int id) {
+        final OkHttpClient client = new OkHttpClient().newBuilder().build();
         final Request request = new Request.Builder().url(API_URL).build();
 
-        List<Bus> buses = new ArrayList<>();
-
         try {
-
             final Response response = client.newCall(request).execute();
-            final byte[] bytes = response.body().bytes();
-
-            GtfsRealtime.FeedMessage feed =
-                    GtfsRealtime.FeedMessage.parseFrom(bytes);
-
-//            System.out.println(feed);
-
-            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
-//                System.out.println(entity);
-                int vehicleId = -1;
-                Position position = null;
-                String occupancy = "UNKNOWN";
-
-                if (entity.hasVehicle()) {
-                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
-
-                    if (vp.hasVehicle() && vp.getVehicle().hasId()) {
-                        vehicleId = Integer.parseInt(vp.getVehicle().getId());
-                    }
-
-                    if (vp.hasVehicle() && vp.hasPosition()) {
-                        position = new Position(vp.getPosition().getLatitude(), vp.getPosition().getLongitude(), vp.getPosition().getBearing(),
-                                vp.getPosition().getSpeed());
-
-                    }
-
-                    if (vp.hasVehicle() && vp.hasOccupancyStatus()) {
-                        occupancy = String.valueOf(vp.getOccupancyStatus());
-                    }
-
-                }
-                Bus bus = new Bus(vehicleId, position, occupancy);
-                buses.add(bus);
+            final JSONObject responseBody = new JSONObject(response.body().string());
+            if (responseBody.getInt(STATUS_CODE) == SUCCESS_CODE) {
+                System.out.println(responseBody);
             }
 
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(buses);
-        return buses;
-
+        return new Bus(id, "unknown", 0.0, 0.0, 0, "unknown");
     }
 
     @Override
-    public Bus getBus(int id) {
-        List<Bus> buses = getAllBuses();
-
-        for (Bus bus : buses) {
-            if (bus.getId() == id) {
-                return bus;
-            }
-        }
-        return null;
+    public Bus[] getAllBuses() {
+        return new Bus[0];
     }
 
     // 获取巴士时刻表
@@ -253,15 +224,13 @@ public class BusDataBaseAPI implements BusDataBase {
     public static void main(String[] args) {
         // 测试API
         BusDataBaseAPI api = new BusDataBaseAPI();
-        api.getAllBuses();
-//
-//        // 测试时刻表查询
-//        Map<String, Object> schedule = api.getBusSchedule("12345");
-//        System.out.println("Schedule result: " + schedule);
-//        new BusDataBaseAPI().getAllBuses();
-//
-//        // 测试ETA查询
-//        Map<String, Object> eta = api.getBusETA("12345", "501");
-//        System.out.println("ETA result: " + eta);
+
+        // 测试时刻表查询
+        Map<String, Object> schedule = api.getBusSchedule("12345");
+        System.out.println("Schedule result: " + schedule);
+
+        // 测试ETA查询
+        Map<String, Object> eta = api.getBusETA("12345", "501");
+        System.out.println("ETA result: " + eta);
     }
 }

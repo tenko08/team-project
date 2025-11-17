@@ -3,38 +3,35 @@ package entities;
 import java.util.List;
 
 public class BusStop {
-    private int id;
-    private int stopSequence;
+    private String id;
     private String name;
-    private Position position;
+    private double latitude;
+    private double longitude;
+    private List<String> routes;
 
-    public BusStop(int id, int stopSequence, String name, Position position) {
+    public BusStop(String id, String name, double latitude, double longitude, List<String> routes) {
         this.id = id;
-        this.stopSequence = stopSequence;
         this.name = name;
-        this.position = position;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.routes = routes;
     }
 
-    // --- Getters ---
-    public int getId() {
+    // Getters and setters
+    public String getId() {
         return id;
     }
-
-    public int getStopSequence() {
-        return stopSequence;
+    public String getName() {
+        return name;
     }
-
-    public Position getPosition() {
-        return position;
+    public double getLatitude() {
+        return latitude;
     }
-
-    @Override
-    public String toString() {
-        return "BusStop{" +
-                "id='" + id + '\'' +
-                ", name=" + name + '\n' +
-                ", position=" + position + '\n'+
-                ", stopSeq='" + stopSequence + '\'' +
-                '}';
+    public double getLongitude() {
+        return longitude;
     }
+    public List<String> getRoutes() {
+        return routes;
+    }
+    
 }
