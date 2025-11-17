@@ -17,6 +17,7 @@ public class AppBuilder extends JFrame {
     final ViewManagerModel viewManagerModel = new ViewManagerModel();
     ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
+    // For other views: add
     private MapView mapView;
     private MapViewModel mapViewModel;
 

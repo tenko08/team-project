@@ -12,8 +12,6 @@ import javax.swing.*;
 public class MapView extends JPanel {
     private final String viewName = "map";
     private final MapViewModel mapViewModel;
-    private static final double LAT = 43.65;
-    private static final double LON = -79.38;
     private JXMapViewer mapViewer;
     private TileFactoryInfo info;
     private DefaultTileFactory tileFactory;
@@ -22,8 +20,7 @@ public class MapView extends JPanel {
         this.mapViewModel = mapViewModel;
         mapViewer = new JXMapViewer();
 
-        // Create a TileFactoryInfo for OpenStreetMap
-        info = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
+        info = mapViewModel.info;
         tileFactory = new DefaultTileFactory(info);
         tileFactory.setUserAgent("TTC Map Viewer/1.0 (contact: michaeld.kim@mail.utoronto.ca)");
         mapViewer.setTileFactory(tileFactory);
@@ -31,11 +28,8 @@ public class MapView extends JPanel {
         // Use 8 threads in parallel to load the tiles
         tileFactory.setThreadPoolSize(8);
 
-        // Set the focus
-        GeoPosition toronto = new GeoPosition(LAT, LON);
-
         mapViewer.setZoom(7);
-        mapViewer.setAddressLocation(toronto);
+        mapViewer.setAddressLocation(mapViewModel.position);
 
         this.add(mapViewer);
     }
