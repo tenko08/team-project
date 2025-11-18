@@ -5,24 +5,21 @@ public class BusStop {
     private int stopSequence;
     private String name;
     private Position position;
-    private List<String> routes;
 
-    public BusStop(int id, String name, Position position, List<String> routes) {
+    public BusStop(int id, int stopSequence, String name, Position position) {
         this.id = id;
+        this.stopSequence = stopSequence;
         this.name = name;
         this.position = position;
-        this.routes = routes;
     }
 
-    // Getters and setters
+    // --- Getters ---
     public int getId() {
         return id;
     }
-    public String getName() {
-        return name;
-    }
-    public List<String> getRoutes() {
-        return routes;
+
+    public int getStopSequence() {
+        return stopSequence;
     }
 
     public Position getPosition() {
