@@ -4,6 +4,14 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Map;
 
+
+/**
+ * The ViewModel for our CA implementation.
+ * This class delegates work to a PropertyChangeSupport object for
+ * managing the property change events.
+ *
+ * @param <T> The type of state object contained in the model.
+ */
 public class ViewModel<T> {
 
     private final String viewName;
