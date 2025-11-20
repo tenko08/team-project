@@ -32,6 +32,14 @@
             <artifactId>gtfs-realtime-bindings</artifactId>
             <version>0.0.8</version>
         </dependency>
+
+        <!-- Override transitive older protobuf to a newer version that is compatible with modern JDKs
+             and avoids terminally deprecated sun.misc.Unsafe methods warnings. -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.21.12</version>
+        </dependency>
     </dependencies>
 
     <properties>
