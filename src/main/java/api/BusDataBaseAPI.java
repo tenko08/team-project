@@ -19,28 +19,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BusDataBaseAPI implements BusDataBase {
-    private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles?debug";
-    private static final String STATUS_CODE = "status_code";
-    private static final int SUCCESS_CODE = 200;
-
     private Map<String, Object> cachedData = new HashMap<>();
-    private OkHttpClient client;
 
-    public BusDataBaseAPI() {
-        this.client = new OkHttpClient().newBuilder()
-                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .build();
-    }
-
-    @Override
-    public Bus getBus(int id) {
-        final OkHttpClient client = new OkHttpClient().newBuilder().build();
-import java.util.ArrayList;
-import java.util.List;
-
-
-public class BusDataBaseAPI implements BusDataBase {
     private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
     @Override
@@ -52,10 +32,8 @@ public class BusDataBaseAPI implements BusDataBase {
         List<Bus> buses = new ArrayList<>();
 
         try {
+
             final Response response = client.newCall(request).execute();
-            final JSONObject responseBody = new JSONObject(response.body().string());
-            if (responseBody.getInt(STATUS_CODE) == SUCCESS_CODE) {
-                System.out.println(responseBody);
             final byte[] bytes = response.body().bytes();
 
             GtfsRealtime.FeedMessage feed =
@@ -95,7 +73,6 @@ public class BusDataBaseAPI implements BusDataBase {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new Bus(id, "unknown", 0.0, 0.0, 0, "unknown");
         System.out.println(buses);
         return buses;
 
@@ -276,14 +253,15 @@ public class BusDataBaseAPI implements BusDataBase {
     public static void main(String[] args) {
         // 测试API
         BusDataBaseAPI api = new BusDataBaseAPI();
-
-        // 测试时刻表查询
-        Map<String, Object> schedule = api.getBusSchedule("12345");
-        System.out.println("Schedule result: " + schedule);
-        new BusDataBaseAPI().getAllBuses();
-
-        // 测试ETA查询
-        Map<String, Object> eta = api.getBusETA("12345", "501");
-        System.out.println("ETA result: " + eta);
+        api.getAllBuses();
+//
+//        // 测试时刻表查询
+//        Map<String, Object> schedule = api.getBusSchedule("12345");
+//        System.out.println("Schedule result: " + schedule);
+//        new BusDataBaseAPI().getAllBuses();
+//
+//        // 测试ETA查询
+//        Map<String, Object> eta = api.getBusETA("12345", "501");
+//        System.out.println("ETA result: " + eta);
     }
 }
