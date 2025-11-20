@@ -13,25 +13,14 @@ import java.util.Random;
 import com.google.transit.realtime.GtfsRealtime;
 
 import entities.Bus;
-
-import com.google.transit.realtime.GtfsRealtime;
 import entities.Position;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class BusDataBaseAPI implements BusDataBase {
+    private Map<String, Object> cachedData = new HashMap<>();
+
     private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
     @Override
@@ -43,6 +32,7 @@ public class BusDataBaseAPI implements BusDataBase {
         List<Bus> buses = new ArrayList<>();
 
         try {
+
             final Response response = client.newCall(request).execute();
             final byte[] bytes = response.body().bytes();
 
