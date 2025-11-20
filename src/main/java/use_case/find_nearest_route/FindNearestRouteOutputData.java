@@ -26,4 +26,14 @@ public class FindNearestRouteOutputData {
     public double getDistance() {
         return distance;
     }
+
+    @Override
+    public String toString() {
+        return "FindNearestRouteOutputData{" +
+                "route=" + route +
+                ", busStop=" + busStop +
+                ", distance=" + distance +
+                '}';
+    }
+
 }
