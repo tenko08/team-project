@@ -1,29 +1,22 @@
 package api;
 
-import entities.Bus;
-
-import com.google.transit.realtime.GtfsRealtime;
-import entities.Position;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.json.JSONObject;
-
 import java.io.IOException;
-import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.transit.realtime.GtfsRealtime;
+
+import entities.Bus;
+import entities.Position;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class BusDataBaseAPI implements BusDataBase {
     private Map<String, Object> cachedData = new HashMap<>();
@@ -276,7 +269,17 @@ public class BusDataBaseAPI implements BusDataBase {
     }
 
     public static void main(String[] args) {
-        new BusDataBaseAPI().getAllBuses();
-
+        // 测试API
+        BusDataBaseAPI api = new BusDataBaseAPI();
+        api.getAllBuses();
+//
+//        // 测试时刻表查询
+//        Map<String, Object> schedule = api.getBusSchedule("12345");
+//        System.out.println("Schedule result: " + schedule);
+//        new BusDataBaseAPI().getAllBuses();
+//
+//        // 测试ETA查询
+//        Map<String, Object> eta = api.getBusETA("12345", "501");
+//        System.out.println("ETA result: " + eta);
     }
 }
