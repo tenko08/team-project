@@ -7,26 +7,26 @@ import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.InternationalFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 
 public class FindNearestRouteView extends JPanel implements ActionListener, PropertyChangeListener {
     private final String viewName = "FindNearestRouteView";
     private final FindNearestRouteViewModel viewModel;
 
-    private final JFormattedTextField longInputField = createDecimalField();
-    private final JFormattedTextField latInputField = createDecimalField();
+    private final JTextField longInputField = new JTextField(15);
+    private final JTextField latInputField = new JTextField(15);
+    private final JLabel errorField = new JLabel("");
 
     private FindNearestRouteController controller = null;
 
     public FindNearestRouteView(FindNearestRouteViewModel viewModel) {
         this.viewModel = viewModel;
+        this.viewModel.addPropertyChangeListener(this);
+
         final JLabel title = new JLabel("Find Nearest Route");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -42,16 +42,18 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         });
 
         addDocumentListener(longInputField, value -> {
-            FindNearestRouteState s = viewModel.getState();
-            if (!value.isBlank()) {
+            validateInputs(searchBtn);
+            if (errorField.getText().isEmpty() && !value.isBlank()) {
+                FindNearestRouteState s = viewModel.getState();
                 s.setLongitude(Double.parseDouble(value));
                 viewModel.setState(s);
             }
         });
 
         addDocumentListener(latInputField, value -> {
-            FindNearestRouteState s = viewModel.getState();
-            if (!value.isBlank()) {
+            validateInputs(searchBtn);
+            if (errorField.getText().isEmpty() && !value.isBlank()) {
+                FindNearestRouteState s = viewModel.getState();
                 s.setLatitude(Double.parseDouble(value));
                 viewModel.setState(s);
             }
@@ -62,8 +64,11 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         this.add(title);
         this.add(longInputField);
         this.add(latInputField);
+        this.add(errorField);
         this.add(searchBtn);
     }
+
+    public String getViewName() { return viewName; }
 
     public void actionPerformed(ActionEvent e) {
         System.out.println("Click " + e.getActionCommand());
@@ -73,7 +78,7 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
     public void propertyChange(PropertyChangeEvent evt) {
         final FindNearestRouteState state = (FindNearestRouteState) evt.getNewValue();
         setFields(state);
-//        usernameErrorField.setText(state.getLoginError());
+        errorField.setText(state.getSearchError());
     }
 
     private void setFields(FindNearestRouteState state) {
@@ -85,15 +90,24 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         this.controller = controller;
     }
 
-    private static JFormattedTextField createDecimalField() {
-        NumberFormat format = new DecimalFormat("#0.########################");
+    private void validateInputs(JButton searchBtn) {
+        String lon = longInputField.getText().trim();
+        String lat = latInputField.getText().trim();
 
-        InternationalFormatter formatter = new InternationalFormatter(format);
-        formatter.setAllowsInvalid(false);
-        return new JFormattedTextField(formatter);
+        try {
+            if (!lon.isEmpty()) Double.parseDouble(lon);
+            if (!lat.isEmpty()) Double.parseDouble(lat);
+
+            errorField.setText("");
+            searchBtn.setEnabled(true);
+        } catch (NumberFormatException ex) {
+            errorField.setText("Invalid number format");
+            searchBtn.setEnabled(false);
+        }
     }
 
-    private static void addDocumentListener(JFormattedTextField field,
+
+    private static void addDocumentListener(JTextField field,
                                            java.util.function.Consumer<String> callback) {
         field.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { callback.accept(field.getText()); }

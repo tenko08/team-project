@@ -17,12 +17,20 @@ public class FindNearestRoutePresenter implements FindNearestRouteOutputBoundary
 
     @Override
     public void prepareSuccessView(FindNearestRouteOutputData outputData) {
-        findNearestRouteViewModel.setState(new FindNearestRouteState());
         System.out.println(outputData);
+        final FindNearestRouteState findNearestRouteState = findNearestRouteViewModel.getState();
+        findNearestRouteState.setRoute(outputData.getRoute());
+        findNearestRouteState.setBusStop(outputData.getBusStop());
+        findNearestRouteState.setDistance(outputData.getDistance());
+
+        this.findNearestRouteViewModel.firePropertyChange();
+        this.findNearestRouteViewModel.setState(new FindNearestRouteState());
     }
 
     @Override
     public void prepareFailView(String message) {
-
+        final FindNearestRouteState findNearestRouteState = findNearestRouteViewModel.getState();
+        findNearestRouteState.setSearchError(message);
+        this.findNearestRouteViewModel.firePropertyChange();
     }
 }

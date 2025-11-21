@@ -1,12 +1,10 @@
 package interface_adapter.find_nearest_route;
 
-public class FindNearestRouteViewModel {
-    //TEMP FUNCTIONS
-    public FindNearestRouteState getState() {
-        return new FindNearestRouteState();
-    }
+import interface_adapter.ViewModel;
 
-    public void setState(FindNearestRouteState state) {
-
+public class FindNearestRouteViewModel extends ViewModel<FindNearestRouteState> {
+    public FindNearestRouteViewModel() {
+        super("FindNearestRouteView");
+        setState(new FindNearestRouteState());
     }
 }

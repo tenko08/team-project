@@ -19,7 +19,6 @@ public class FindNearestRouteInteractor implements FindNearestRouteInputBoundary
 
     @Override
     public void execute(FindNearestRouteInputData inputData) {
-
         Position p = inputData.getPosition();
         List<Route> routes = dataAccess.getAllRoutes();
 
