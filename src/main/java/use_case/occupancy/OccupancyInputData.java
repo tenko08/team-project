@@ -7,9 +7,15 @@ import entities.Route;
  */
 public class OccupancyInputData {
     private final Route route;
+    private final int busId;
 
-    public OccupancyInputData(Route route) {
+    public OccupancyInputData(int busId, Route route) {
+        this.busId = busId;
         this.route = route;
+    }
+
+    public int getBusId() {
+        return busId;
     }
 
     public Route getRoute() {
