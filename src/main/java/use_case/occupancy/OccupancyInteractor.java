@@ -22,7 +22,8 @@ public class OccupancyInteractor implements OccupancyInputBoundary {
         if (occupancy == null) {
             occupancyOutputBoundary.prepareFailView("No data available");
         } else {
-            occupancyOutputBoundary.prepareSuccessView(new OccupancyOutputData(occupancy));
+            occupancyOutputBoundary
+                    .prepareSuccessView(new OccupancyOutputData(occupancyInputData.getBusId(), occupancy));
         }
     }
 }

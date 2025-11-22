@@ -6,10 +6,12 @@ package interface_adapter.occupancy;
 public class OccupancyState {
     private String occupancy = "";
     private String error = null;
+    private java.util.Map<Integer, String> busOccupancies = new java.util.HashMap<>();
 
     public OccupancyState(OccupancyState copy) {
         this.occupancy = copy.occupancy;
         this.error = copy.error;
+        this.busOccupancies = new java.util.HashMap<>(copy.busOccupancies);
     }
 
     public OccupancyState() {
@@ -29,5 +31,13 @@ public class OccupancyState {
 
     public void setError(String error) {
         this.error = error;
+    }
+
+    public java.util.Map<Integer, String> getBusOccupancies() {
+        return busOccupancies;
+    }
+
+    public void setBusOccupancies(java.util.Map<Integer, String> busOccupancies) {
+        this.busOccupancies = busOccupancies;
     }
 }
