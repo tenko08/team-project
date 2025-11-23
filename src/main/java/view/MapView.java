@@ -12,6 +12,7 @@ import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;
+import java.awt.*;
 
 public class MapView extends JPanel {
     private final String viewName = "map";
@@ -22,6 +23,7 @@ public class MapView extends JPanel {
 
     public MapView(MapViewModel mapViewModel) {
         this.mapViewModel = mapViewModel;
+        setLayout(new BorderLayout());
         mapViewer = new JXMapViewer();
 
         info = mapViewModel.info;
@@ -52,7 +54,10 @@ public class MapView extends JPanel {
         mapViewer.addMouseListener(sa);
         mapViewer.addMouseMotionListener(sa);
 
-        this.add(mapViewer);
+        // Ensure the map view fills available space
+        add(mapViewer, BorderLayout.CENTER);
+        // Provide a reasonable preferred size so pack() creates a large map
+        setPreferredSize(new Dimension(900, 600));
     }
 
     public JXMapViewer getMapViewer() {
