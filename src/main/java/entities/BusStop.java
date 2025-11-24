@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.List;
+
 public class BusStop {
     private int id;
     private int stopSequence;
@@ -16,6 +18,10 @@ public class BusStop {
     // --- Getters ---
     public int getId() {
         return id;
+    }
+
+    public String getName(){
+        return name;
     }
 
     public int getStopSequence() {

@@ -1,13 +1,10 @@
 package data_access;
 
-import use_case.map.MapDataAccessInterface;
-
 import java.io.File;
 
-import use_case.occupancy.OccupancyDataAccessInterface;
-import entities.Bus;
+import use_case.map.MapDataAccessInterface;
 
-public class CacheAccessObject implements MapDataAccessInterface, OccupancyDataAccessInterface {
+public class CacheAccessObject implements MapDataAccessInterface {
     private File cacheDir;
 
     public CacheAccessObject() {
@@ -16,13 +13,5 @@ public class CacheAccessObject implements MapDataAccessInterface, OccupancyDataA
 
     public File getCacheDir() {
         return cacheDir;
-    }
-
-    @Override
-    public String getOccupancy(Bus bus) {
-        if (bus != null) {
-            return bus.getOccupancy();
-        }
-        return null;
     }
 }

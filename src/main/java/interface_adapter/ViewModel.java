@@ -3,6 +3,7 @@ package interface_adapter;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+
 /**
  * The ViewModel for our CA implementation.
  * This class delegates work to a PropertyChangeSupport object for

@@ -14,6 +14,7 @@ import com.google.transit.realtime.GtfsRealtime;
 
 import entities.Bus;
 import entities.Position;
+import entities.Route;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -46,7 +47,6 @@ public class BusDataBaseAPI implements BusDataBase {
                 int vehicleId = -1;
                 Position position = null;
                 String occupancy = "UNKNOWN";
-                String routeId = "";
 
                 if (entity.hasVehicle()) {
                     GtfsRealtime.VehiclePosition vp = entity.getVehicle();
@@ -65,25 +65,8 @@ public class BusDataBaseAPI implements BusDataBase {
                         occupancy = String.valueOf(vp.getOccupancyStatus());
                     }
 
-                    if (vp.hasTrip() && vp.getTrip().hasRouteId()) {
-                        routeId = vp.getTrip().getRouteId();
-                    }
-
                 }
-                // Extract latitude and longitude from position, default to 0.0 if null
-                double latitude = (position != null) ? position.getLatitude() : 0.0;
-                double longitude = (position != null) ? position.getLongitude() : 0.0;
-                
-                // Convert occupancy String to int (handle "UNKNOWN" as 0)
-                int occupancyInt = 0;
-                try {
-                    occupancyInt = Integer.parseInt(occupancy);
-                } catch (NumberFormatException e) {
-                    // If occupancy is not a number (e.g., "UNKNOWN"), default to 0
-                    occupancyInt = 0;
-                }
-                
-                Bus bus = new Bus(vehicleId, routeId, latitude, longitude, occupancyInt, "");
+                Bus bus = new Bus(vehicleId, position, occupancy);
                 buses.add(bus);
             }
 
@@ -263,6 +246,106 @@ public class BusDataBaseAPI implements BusDataBase {
 
             // 缓存回退数据
             cachedData.put("schedule_" + stopId, staticData);
+        }
+
+        return result;
+    }
+
+    public Map<String, Object> getBusesByRoute(String routeNumber) {
+        Map<String, Object> result = new HashMap<>();
+        final OkHttpClient client = new OkHttpClient();
+        final Request request = new Request.Builder().url(API_URL).build();
+
+        List<Bus> buses = new ArrayList<>();
+        Route route = null;
+
+        try {
+            final Response response = client.newCall(request).execute();
+            final byte[] bytes = response.body().bytes();
+
+            GtfsRealtime.FeedMessage feed = GtfsRealtime.FeedMessage.parseFrom(bytes);
+
+            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
+//                System.out.println(entity);
+                if (entity.hasVehicle()) {
+                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
+
+                    // Extract route ID from trip descriptor
+                    String routeId = null;
+                    if (vp.hasTrip() && vp.getTrip().hasRouteId()) {
+                        routeId = vp.getTrip().getRouteId();
+                    }
+
+                    // Only process buses matching the requested route
+                    if (routeId != null && routeId.equals(routeNumber)) {
+                        // Create route object if not already created
+                        if (route == null) {
+                            try {
+                                int routeNum = Integer.parseInt(routeNumber);
+                                route = new Route(routeNum);
+                            } catch (NumberFormatException e) {
+                                // If route number can't be parsed as int, use 0 as default
+                                route = new Route(0);
+                            }
+                        }
+
+                        int vehicleId = -1;
+                        Position position = null;
+                        String occupancy = "UNKNOWN";
+
+                        if (vp.hasVehicle() && vp.getVehicle().hasId()) {
+                            vehicleId = Integer.parseInt(vp.getVehicle().getId());
+                        }
+
+                        if (vp.hasPosition()) {
+                            position = new Position(
+                                    vp.getPosition().getLatitude(),
+                                    vp.getPosition().getLongitude(),
+                                    vp.getPosition().getBearing(),
+                                    vp.getPosition().getSpeed()
+                            );
+                        }
+
+                        if (vp.hasOccupancyStatus()) {
+                            occupancy = String.valueOf(vp.getOccupancyStatus());
+                        }
+
+                        // Get direction from trip
+//                        String direction = null;
+//                        if (vp.hasTrip() && vp.getTrip().hasDirectionId()) {
+//                            direction = vp.getTrip().getDirectionId() == 0 ? "Outbound" : "Inbound";
+//                        }
+
+                        // Create Bus entity with direction
+                        Bus bus = new Bus(vehicleId, position, occupancy);
+                        buses.add(bus);
+                    }
+                }
+            }
+
+            // Cache the result
+            Map<String, Object> routeData = new HashMap<>();
+            routeData.put("route", route);
+            routeData.put("buses", buses);
+            routeData.put("routeNumber", routeNumber);
+            routeData.put("lastUpdated", new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            cachedData.put("route_" + routeNumber, routeData);
+
+            if (buses.isEmpty() || route == null) {
+                result.put("success", false);
+                result.put("message", "Route not found");
+            } else {
+                result.put("success", true);
+                result.put("route", route);
+                result.put("buses", buses);
+                result.put("routeNumber", routeNumber);
+                result.put("cached", false);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return result;

@@ -1,49 +1,63 @@
 package app;
 
-import java.awt.CardLayout;
-import java.awt.Container;
-
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
-
+import data_access.CacheAccessObject;
+import entities.*;
 import interface_adapter.ViewManagerModel;
+import interface_adapter.find_nearest_route.FindNearestRouteController;
+import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
+import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
+import interface_adapter.map.MapPresenter;
+import interface_adapter.map.MapViewModel;
+import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
+import use_case.find_nearest_route.FindNearestRouteInputBoundary;
+import use_case.find_nearest_route.FindNearestRouteInteractor;
+import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
+import interface_adapter.alerts.AlertsController;
+import interface_adapter.alerts.AlertsPresenter;
+import interface_adapter.alerts.AlertsViewModel;
+import use_case.alerts.AlertsInputBoundary;
+import use_case.alerts.AlertsInteractor;
+import use_case.alerts.AlertsOutputBoundary;
+import use_case.map.MapInputBoundary;
+import use_case.map.MapInteractor;
+import view.FindNearestRouteView;
 import view.MapView;
 import view.ViewManager;
 import use_case.map.MapOutputBoundary;
-
-import interface_adapter.occupancy.OccupancyViewModel;
-import view.OccupancyView;
+import view.AlertsView;
+import api.AlertDataBaseAPI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AppBuilder extends JFrame {
-    private final Container cardPane = getContentPane();
+    private final JPanel cardPanel = new JPanel();
     private final CardLayout cardLayout = new CardLayout();
     private static final String TITLE = "Real-Time TTC Map Viewer";
     final ViewManagerModel viewManagerModel = new ViewManagerModel();
-    ViewManager viewManager = new ViewManager(cardPane, cardLayout, viewManagerModel);
+    ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
     // DAO using file cache
     final CacheAccessObject cacheAccessObject = new CacheAccessObject();
 
-    // For other views: declare view and view model, then implement methods to add
-    // view and use case interactor
+    // For other views: declare view and view model, then implement methods to add view and use case interactor
     private MapView mapView;
+    private MapViewModel mapViewModel;
+    private FindNearestRouteView findNearestRouteView;
+    private FindNearestRouteViewModel findNearestRouteViewModel;
 
-    // Occupancy components
-    private OccupancyView occupancyView;
-    private OccupancyViewModel occupancyViewModel;
-    private interface_adapter.occupancy.OccupancyController occupancyController;
+    private AlertsView alertsView;
+    private AlertsViewModel alertsViewModel;
+    private AlertsController alertsController;
 
-    public AppBuilder() {
-        cardPanel.setLayout(cardLayout);
-    }
+    public AppBuilder() { cardPanel.setLayout(cardLayout); }
 
     public AppBuilder addMapView() {
         mapViewModel = new MapViewModel();
         mapView = new MapView(mapViewModel);
-        cardPanel.add(mapView.getMapViewer(), mapView.getViewName());
+        cardPanel.add(mapView.getMapViewer(),mapView.getViewName());
         return this;
     }
 
@@ -53,56 +67,105 @@ public class AppBuilder extends JFrame {
         return this;
     }
 
-    public AppBuilder addOccupancyView() {
-        occupancyViewModel = new interface_adapter.occupancy.OccupancyViewModel();
-        occupancyView = new OccupancyView(occupancyViewModel);
-        cardPanel.add(occupancyView, occupancyView.getViewName());
+    public AppBuilder addFindNearestRouteView() {
+        findNearestRouteViewModel = new FindNearestRouteViewModel();
+        findNearestRouteView = new FindNearestRouteView(findNearestRouteViewModel);
+        cardPanel.add(findNearestRouteView,findNearestRouteView.getViewName());
         return this;
     }
 
-    public AppBuilder addOccupancyUseCase() {
-        final use_case.occupancy.OccupancyOutputBoundary occupancyOutputBoundary = new interface_adapter.occupancy.OccupancyPresenter(
-                occupancyViewModel);
-        final use_case.occupancy.OccupancyInputBoundary occupancyInteractor = new use_case.occupancy.OccupancyInteractor(
-                occupancyOutputBoundary, cacheAccessObject);
-        occupancyController = new interface_adapter.occupancy.OccupancyController(occupancyInteractor);
+    public AppBuilder addFindNearestRouteUseCase() {
+        final FindNearestRouteOutputBoundary findNearestRouteOutputBoundary
+                = new FindNearestRoutePresenter(findNearestRouteViewModel);
+        // TODO: use DAO, this is tempdata
+        final FindNearestRouteInputBoundary findNearestRouteInteractor
+                = new FindNearestRouteInteractor(new FindNearestRouteDataAccessInterface() {
+            @Override
+            public List<Route> getAllRoutes() {
+                List<Route> routes = new ArrayList<Route>();
+                Route route929 = new Route(929);
+                route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
+                        new Position(43.800546, -79.334889)));
+
+                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
+                        new Position(43.65386, -79.43306, 164, 0),
+                        "FEW_SEATS_AVAILABLE")));
+
+                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
+                        new Position(43.7322, -79.45838, 253, 0),
+                        "EMPTY")));
+
+                routes.add(route929);
+                return routes;
+            }
+        }, findNearestRouteOutputBoundary);
+
+        FindNearestRouteController findNearestRouteController
+                = new FindNearestRouteController(findNearestRouteInteractor);
+        findNearestRouteView.setController(findNearestRouteController);
         return this;
     }
 
-    // Helper to get controller for MainFrame
-    public interface_adapter.occupancy.OccupancyController getOccupancyController() {
-        return occupancyController;
+    public AppBuilder addAlertsUseCase() {
+        alertsViewModel = new AlertsViewModel();
+        final AlertsOutputBoundary presenter = new AlertsPresenter(alertsViewModel);
+        final AlertsInputBoundary interactor = new AlertsInteractor(new AlertDataBaseAPI(), presenter);
+        alertsController = new AlertsController(interactor);
+        return this;
+    }
+
+    public AppBuilder addAlertsView() {
+        if (alertsViewModel == null || alertsController == null) {
+            // Ensure use case is initialized before view
+            addAlertsUseCase();
+        }
+        alertsView = new AlertsView(alertsViewModel, alertsController, viewManagerModel);
+        cardPanel.add(alertsView, alertsView.getViewName());
+        return this;
     }
 
     public JFrame build() {
         final JFrame app = new JFrame(TITLE);
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        app.setLayout(new BorderLayout());
 
-        app.add(cardPanel, BorderLayout.CENTER);
+        // Create a container with BorderLayout to host toolbar + cards
+        JPanel root = new JPanel(new BorderLayout());
+        root.add(buildToolbar(), BorderLayout.NORTH);
+        root.add(cardPanel, BorderLayout.CENTER);
 
-        // Navigation Panel
-        JPanel navPanel = new JPanel();
-        JButton mapButton = new JButton("Map");
-        JButton occupancyButton = new JButton("Occupancy");
-
-        mapButton.addActionListener(e -> {
-            viewManagerModel.setState(mapView.getViewName());
-            viewManagerModel.firePropertyChange();
-        });
-
-        occupancyButton.addActionListener(e -> {
-            viewManagerModel.setState(occupancyView.getViewName());
-            viewManagerModel.firePropertyChange();
-        });
-
-        navPanel.add(mapButton);
-        navPanel.add(occupancyButton);
-        app.add(navPanel, BorderLayout.SOUTH);
+        app.setContentPane(root);
 
         viewManagerModel.setState(mapView.getViewName()); // Default view
+//        viewManagerModel.setState(findNearestRouteView.getViewName());
         viewManagerModel.firePropertyChange();
 
         return app;
+    }
+
+    private JComponent buildToolbar() {
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+
+        JButton alertsBtn = new JButton("Alerts");
+        alertsBtn.addActionListener(e -> {
+            // Navigate to Alerts view and trigger refresh
+            viewManagerModel.setState("alerts");
+            viewManagerModel.firePropertyChange();
+            if (alertsController != null && alertsViewModel != null) {
+                alertsViewModel.setLoading(true);
+                alertsViewModel.firePropertyChanged();
+                alertsController.execute();
+            }
+        });
+
+        JButton findNearestRouteBtn = new JButton("Find Nearest Route");
+        findNearestRouteBtn.addActionListener(e -> {
+            viewManagerModel.setState(findNearestRouteView.getViewName());
+            viewManagerModel.firePropertyChange();
+        });
+
+        toolBar.add(alertsBtn);
+        toolBar.add(findNearestRouteBtn);
+        return toolBar;
     }
 }

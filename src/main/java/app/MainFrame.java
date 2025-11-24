@@ -6,14 +6,20 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import entities.Route;
 
 public class MainFrame {
+
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             AppBuilder appBuilder = new AppBuilder();
             JFrame app = appBuilder
                     .addMapView()
+                    .addMapUseCase()
+                    .addFindNearestRouteView()
+                    .addFindNearestRouteUseCase()
+                    .addAlertsView()
+                    .addAlertsUseCase()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();
@@ -22,35 +28,18 @@ public class MainFrame {
         });
         List<Route> routes = new ArrayList<Route>();
         Route route929 = new Route(929);
+        route929.addBusStop(new BusStop(1526,16,"Victoria Park Ave at Navaho Dr",
+                new Position(43.800546,-79.334889)));
+
+        route929.addTrip(new Trip(72598070, route929, new Bus(9446,
+                new Position(43.65386, -79.43306, 164, 0),
+                "FEW_SEATS_AVAILABLE")));
+
+        route929.addTrip(new Trip(76422070, route929, new Bus(9432,
+                new Position(43.7322, -79.45838, 253, 0),
+                "EMPTY")));
+
         routes.add(route929);
-
-                route929.addTrip(new Trip(11854020, route929, new Bus(3630,
-                                new Position(43.723186, -79.49693, 74, 0),
-                                "UNKNOWN")));
-
-                route929.addTrip(new Trip(36126020, route929, new Bus(3632,
-                                new Position(43.70988, -79.474144, 253, 0),
-                                "UNKNOWN")));
-
-                routes.add(route929);
-
-                SwingUtilities.invokeLater(() -> {
-                        AppBuilder appBuilder = new AppBuilder();
-                        JFrame app = appBuilder
-                                        .addMapView()
-                                        .addMapUseCase()
-                                        .addOccupancyView()
-                                        .addOccupancyUseCase()
-                                        .build();
-
-                        // Trigger occupancy check for the route
-                        appBuilder.getOccupancyController().execute(route929);
-
-                        app.setMinimumSize(new java.awt.Dimension(400, 300));
-                        app.pack();
-                        app.setLocationRelativeTo(null);
-                        app.setVisible(true);
-                });
 
         }
 }
