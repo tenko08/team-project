@@ -1,7 +1,9 @@
 package use_case.search_by_route;
 
+import entities.Bus;
 import entities.Route;
 import interface_adapter.search_by_route.SearchByRouteGateway;
+
 import java.util.List;
 import java.util.Map;
 
@@ -19,24 +21,21 @@ public class SearchByRouteInteractor implements SearchByRouteInputBoundary {
     public void execute(SearchByRouteInputData inputData) {
         String routeNumber = inputData.getRouteNumber();
 
-        // Validate route number
         if (routeNumber == null || routeNumber.trim().isEmpty()) {
             outputBoundary.prepareFailView("Route number cannot be empty");
             return;
         }
 
         try {
-            // Get buses for the route
             Map<String, Object> result = searchByRouteGateway.getBusesByRoute(routeNumber);
 
             boolean success = (Boolean) result.getOrDefault("success", false);
             boolean isCached = (Boolean) result.getOrDefault("cached", false);
 
             if (success) {
-                @SuppressWarnings("unchecked")
                 Route route = (Route) result.get("route");
                 @SuppressWarnings("unchecked")
-                List<entities.Bus> buses = (List<entities.Bus>) result.get("buses");
+                List<Bus> buses = (List<Bus>) result.get("buses");
 
                 SearchByRouteOutputData outputData = new SearchByRouteOutputData(
                         true,
