@@ -16,6 +16,8 @@ public class MainFrame {
             JFrame app = appBuilder
                     .addMapView()
                     .addMapUseCase()
+                    .addAlertsUseCase()
+                    .addAlertsView()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();
