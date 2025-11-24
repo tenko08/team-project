@@ -1,16 +1,24 @@
 package app;
 
+import api.AlertDataBaseAPI;
+import api.BusDataBaseAPI;
 import data_access.CacheAccessObject;
 import entities.*;
 import interface_adapter.ViewManagerModel;
+import interface_adapter.alerts.AlertsController;
+import interface_adapter.alerts.AlertsPresenter;
+import interface_adapter.alerts.AlertsViewModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
 import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
+<<<<<<< HEAD
 import interface_adapter.occupancy.OccupancyController;
 import interface_adapter.occupancy.OccupancyPresenter;
 import interface_adapter.occupancy.OccupancyViewModel;
+=======
+>>>>>>> main
 import interface_adapter.search_by_route.SearchByRouteController;
 import interface_adapter.search_by_route.SearchByRouteGateway;
 import interface_adapter.search_by_route.SearchByRouteGatewayImpl;
@@ -23,28 +31,25 @@ import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
 import use_case.find_nearest_route.FindNearestRouteInputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInteractor;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
-import interface_adapter.alerts.AlertsController;
-import interface_adapter.alerts.AlertsPresenter;
-import interface_adapter.alerts.AlertsViewModel;
-import use_case.alerts.AlertsInputBoundary;
-import use_case.alerts.AlertsInteractor;
-import use_case.alerts.AlertsOutputBoundary;
 import use_case.map.MapInputBoundary;
 import use_case.map.MapInteractor;
 import use_case.map.MapOutputBoundary;
+<<<<<<< HEAD
 import use_case.occupancy.OccupancyInputBoundary;
 import use_case.occupancy.OccupancyInteractor;
 import use_case.occupancy.OccupancyOutputBoundary;
+=======
+>>>>>>> main
 import use_case.search_by_route.SearchByRouteInteractor;
 import view.AlertsView;
 import view.FindNearestRouteView;
 import view.MapView;
+<<<<<<< HEAD
 import view.OccupancyView;
+=======
+>>>>>>> main
 import view.SearchByRouteView;
 import view.ViewManager;
-import use_case.map.MapOutputBoundary;
-import view.AlertsView;
-import api.AlertDataBaseAPI;
 
 import javax.swing.*;
 import java.awt.*;
