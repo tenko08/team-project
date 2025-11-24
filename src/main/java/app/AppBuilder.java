@@ -12,12 +12,20 @@ import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
 import use_case.find_nearest_route.FindNearestRouteInputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInteractor;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
+import interface_adapter.alerts.AlertsController;
+import interface_adapter.alerts.AlertsPresenter;
+import interface_adapter.alerts.AlertsViewModel;
+import use_case.alerts.AlertsInputBoundary;
+import use_case.alerts.AlertsInteractor;
+import use_case.alerts.AlertsOutputBoundary;
 import use_case.map.MapInputBoundary;
 import use_case.map.MapInteractor;
 import view.FindNearestRouteView;
 import view.MapView;
 import view.ViewManager;
 import use_case.map.MapOutputBoundary;
+import view.AlertsView;
+import api.AlertDataBaseAPI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,9 +48,11 @@ public class AppBuilder extends JFrame {
     private FindNearestRouteView findNearestRouteView;
     private FindNearestRouteViewModel findNearestRouteViewModel;
 
-    public AppBuilder() {
-        cardPanel.setLayout(cardLayout);
-    }
+    private AlertsView alertsView;
+    private AlertsViewModel alertsViewModel;
+    private AlertsController alertsController;
+
+    public AppBuilder() { cardPanel.setLayout(cardLayout); }
 
     public AppBuilder addMapView() {
         mapViewModel = new MapViewModel();
@@ -96,6 +106,24 @@ public class AppBuilder extends JFrame {
         return this;
     }
 
+    public AppBuilder addAlertsUseCase() {
+        alertsViewModel = new AlertsViewModel();
+        final AlertsOutputBoundary presenter = new AlertsPresenter(alertsViewModel);
+        final AlertsInputBoundary interactor = new AlertsInteractor(new AlertDataBaseAPI(), presenter);
+        alertsController = new AlertsController(interactor);
+        return this;
+    }
+
+    public AppBuilder addAlertsView() {
+        if (alertsViewModel == null || alertsController == null) {
+            // Ensure use case is initialized before view
+            addAlertsUseCase();
+        }
+        alertsView = new AlertsView(alertsViewModel, alertsController, viewManagerModel);
+        cardPanel.add(alertsView, alertsView.getViewName());
+        return this;
+    }
+
     public JFrame build() {
         final JFrame app = new JFrame(TITLE);
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -123,11 +151,11 @@ public class AppBuilder extends JFrame {
             // Navigate to Alerts view and trigger refresh
             viewManagerModel.setState("alerts");
             viewManagerModel.firePropertyChange();
-//            if (alertsController != null && alertsViewModel != null) {
-//                alertsViewModel.setLoading(true);
-//                alertsViewModel.firePropertyChanged();
-//                alertsController.execute();
-//            }
+            if (alertsController != null && alertsViewModel != null) {
+                alertsViewModel.setLoading(true);
+                alertsViewModel.firePropertyChanged();
+                alertsController.execute();
+            }
         });
 
         JButton findNearestRouteBtn = new JButton("Find Nearest Route");
