@@ -1,5 +1,7 @@
 package view;
 
+import entities.BusStop;
+import entities.Route;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
 import interface_adapter.find_nearest_route.FindNearestRouteState;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
@@ -21,16 +23,49 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
     private final JTextField latInputField = new JTextField(15);
     private final JLabel errorField = new JLabel("");
 
+    private final JTextArea outputArea = new JTextArea(6, 25);
     private FindNearestRouteController controller = null;
 
     public FindNearestRouteView(FindNearestRouteViewModel viewModel) {
         this.viewModel = viewModel;
         this.viewModel.addPropertyChangeListener(this);
 
-        final JLabel title = new JLabel("Find Nearest Route");
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
+        JLabel title = new JLabel("Find Nearest Route");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 22f));
+        this.add(title);
+        this.add(Box.createVerticalStrut(15));
+
+
+        JLabel lonLabel = new JLabel("---Longitude---");
+        lonLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(lonLabel);
+        longInputField.setMaximumSize(new Dimension(300, 30));
+        this.add(longInputField);
+        this.add(Box.createVerticalStrut(10));
+
+        JLabel latLabel = new JLabel("---Latitude---");
+        latLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(latLabel);
+        latInputField.setMaximumSize(new Dimension(300, 30));
+        this.add(latInputField);
+        this.add(Box.createVerticalStrut(10));
+
+        errorField.setForeground(Color.RED);
+        errorField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        errorField.setPreferredSize(new Dimension(300, 20));
+        errorField.setMinimumSize(new Dimension(300, 20));
+        errorField.setMaximumSize(new Dimension(300, 20));
+        this.add(errorField);
+        this.add(Box.createVerticalStrut(10));
 
         JButton searchBtn = new JButton("Search");
+        searchBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(searchBtn);
+        this.add(Box.createVerticalStrut(20));
         searchBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -59,13 +94,20 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
             }
         });
 
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        outputArea.setEditable(false);
+        outputArea.setLineWrap(true);
+        outputArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Result"));
+        this.add(scrollPane);
 
-        this.add(title);
-        this.add(longInputField);
-        this.add(latInputField);
-        this.add(errorField);
-        this.add(searchBtn);
+//        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+//
+//        this.add(title);
+//        this.add(longInputField);
+//        this.add(latInputField);
+//        this.add(errorField);
+//        this.add(searchBtn);
     }
 
     public String getViewName() { return viewName; }
@@ -79,6 +121,28 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         final FindNearestRouteState state = (FindNearestRouteState) evt.getNewValue();
         setFields(state);
         errorField.setText(state.getSearchError());
+        BusStop bs = state.getBusStop();
+        Route route = state.getRoute();
+
+        if (bs != null && route != null) {
+            String formatted =
+                    "Nearest Route Information\n" +
+                            "-----------------------------------\n" +
+                            "Route Number: " + route.getRouteNumber() + "\n" +
+                            "Stops on Route: " + route.getBusStopList().size() + "\n" +
+                            "\n" +
+                            "Nearest Bus Stop\n" +
+                            "-----------------------------------\n" +
+                            "Stop ID: " + bs.getId() + "\n" +
+                            "Name: " + bs.getName() + "\n" +
+                            "Sequence on Route: " + bs.getStopSequence() + "\n" +
+                            "Latitude: " + bs.getPosition().getLatitude() + "\n" +
+                            "Longitude: " + bs.getPosition().getLongitude();
+
+            outputArea.setText(formatted);
+        } else {
+            outputArea.setText("No route or bus stop found.");
+        }
     }
 
     private void setFields(FindNearestRouteState state) {

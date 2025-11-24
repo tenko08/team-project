@@ -47,7 +47,7 @@ public class AppBuilder extends JFrame {
     public AppBuilder addMapView() {
         mapViewModel = new MapViewModel();
         mapView = new MapView(mapViewModel);
-        cardPanel.add(mapView.getMapViewer());
+        cardPanel.add(mapView.getMapViewer(),mapView.getViewName());
         return this;
     }
 
@@ -60,7 +60,7 @@ public class AppBuilder extends JFrame {
     public AppBuilder addFindNearestRouteView() {
         findNearestRouteViewModel = new FindNearestRouteViewModel();
         findNearestRouteView = new FindNearestRouteView(findNearestRouteViewModel);
-        cardPanel.add(findNearestRouteView);
+        cardPanel.add(findNearestRouteView,findNearestRouteView.getViewName());
         return this;
     }
 
@@ -100,12 +100,44 @@ public class AppBuilder extends JFrame {
         final JFrame app = new JFrame(TITLE);
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        app.setContentPane(cardPanel);
+        // Create a container with BorderLayout to host toolbar + cards
+        JPanel root = new JPanel(new BorderLayout());
+        root.add(buildToolbar(), BorderLayout.NORTH);
+        root.add(cardPanel, BorderLayout.CENTER);
+
+        app.setContentPane(root);
 
         viewManagerModel.setState(mapView.getViewName()); // Default view
 //        viewManagerModel.setState(findNearestRouteView.getViewName());
         viewManagerModel.firePropertyChange();
 
         return app;
+    }
+
+    private JComponent buildToolbar() {
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+
+        JButton alertsBtn = new JButton("Alerts");
+        alertsBtn.addActionListener(e -> {
+            // Navigate to Alerts view and trigger refresh
+            viewManagerModel.setState("alerts");
+            viewManagerModel.firePropertyChange();
+//            if (alertsController != null && alertsViewModel != null) {
+//                alertsViewModel.setLoading(true);
+//                alertsViewModel.firePropertyChanged();
+//                alertsController.execute();
+//            }
+        });
+
+        JButton findNearestRouteBtn = new JButton("Find Nearest Route");
+        findNearestRouteBtn.addActionListener(e -> {
+            viewManagerModel.setState(findNearestRouteView.getViewName());
+            viewManagerModel.firePropertyChange();
+        });
+
+        toolBar.add(alertsBtn);
+        toolBar.add(findNearestRouteBtn);
+        return toolBar;
     }
 }

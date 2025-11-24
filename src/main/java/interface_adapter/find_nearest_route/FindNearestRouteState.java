@@ -16,6 +16,10 @@ public class FindNearestRouteState {
         return position;
     }
 
+    public Route getRoute() { return route; }
+    public BusStop getBusStop() { return busStop;}
+    public double getDistance() { return distance;}
+
     public String getSearchError() {
         return searchError;
     }
@@ -47,4 +51,5 @@ public class FindNearestRouteState {
     public void setSearchError(String searchError) {
         this.searchError = searchError;
     }
+
 }
