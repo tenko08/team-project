@@ -7,5 +7,7 @@ public class MapInteractor implements MapInputBoundary {
     public MapInteractor(MapDataAccessInterface mapDataAccessInterface, MapOutputBoundary mapOutputBoundary) {
         this.cacheDataAccessObject = mapDataAccessInterface;
         this.mapPresenter = mapOutputBoundary;
+        MapOutputData outputData = new MapOutputData();
+        mapPresenter.prepareBusView(outputData);
     }
 }
