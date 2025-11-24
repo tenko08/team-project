@@ -1,0 +1,303 @@
+Index: src/main/java/use_case/alerts/AlertsInputBoundary.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package use_case.alerts;\r\n\r\npublic interface AlertsInputBoundary {\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/use_case/alerts/AlertsInputBoundary.java b/src/main/java/use_case/alerts/AlertsInputBoundary.java
+--- a/src/main/java/use_case/alerts/AlertsInputBoundary.java	(revision b2c2cd0b320cb2831dd78b4285b580e6886db758)
++++ b/src/main/java/use_case/alerts/AlertsInputBoundary.java	(date 1763752697647)
+@@ -1,4 +1,5 @@
+ package use_case.alerts;
+ 
+ public interface AlertsInputBoundary {
++    void execute(AlertsInputData inputData);
+ }
+Index: src/main/java/use_case/alerts/AlertsInteractor.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package use_case.alerts;\r\n\r\npublic class AlertsInteractor {\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/use_case/alerts/AlertsInteractor.java b/src/main/java/use_case/alerts/AlertsInteractor.java
+--- a/src/main/java/use_case/alerts/AlertsInteractor.java	(revision b2c2cd0b320cb2831dd78b4285b580e6886db758)
++++ b/src/main/java/use_case/alerts/AlertsInteractor.java	(date 1763753304719)
+@@ -1,4 +1,52 @@
+ package use_case.alerts;
+ 
+-public class AlertsInteractor {
++import api.AlertDataBase;
++import entities.Alert;
++
++import java.util.Collections;
++import java.util.List;
++
++public class AlertsInteractor implements AlertsInputBoundary {
++
++    private final AlertDataBase alertDataBase;
++    private final AlertsOutputBoundary presenter;
++
++    public AlertsInteractor(AlertDataBase alertDataBase, AlertsOutputBoundary presenter) {
++        this.alertDataBase = alertDataBase;
++        this.presenter = presenter;
++    }
++
++    @Override
++    public void execute(AlertsInputData inputData) {
++        try {
++            List<Alert> alerts = alertDataBase.getAllAlerts();
++            presenter.present(new AlertsOutputData(true, null, alerts));
++        } catch (Exception e) {
++            presenter.present(new AlertsOutputData(false, e.getMessage(), Collections.emptyList()));
++        }
++    }
++    public static void main(String[] args) {
++        // 1. Use the REAL API
++        api.AlertDataBase realApi = new api.AlertDataBaseAPI();
++
++        // 2. Create a simple presenter that prints to console
++        AlertsOutputBoundary consolePresenter = new AlertsOutputBoundary() {
++            @Override
++            public void prepareSuccessView(AlertsOutputData output) {
++                System.out.println("Success! Found " + output.getAlerts().size() + " alerts.");
++                for (entities.Alert a : output.getAlerts()) {
++                    System.out.println("- " + a.getHeaderText());
++                }
++            }
++
++            @Override
++            public void prepareFailView(String error) {
++                System.out.println("Error: " + error);
++            }
++        };
++
++        // 3. Run it
++        AlertsInteractor interactor = new AlertsInteractor(realApi, consolePresenter);
++        interactor.execute(new AlertsInputData());
++    }
+ }
+Index: src/main/java/view/AlertsView.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package view;\r\n\r\npublic class AlertsView {\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/view/AlertsView.java b/src/main/java/view/AlertsView.java
+--- a/src/main/java/view/AlertsView.java	(revision b2c2cd0b320cb2831dd78b4285b580e6886db758)
++++ b/src/main/java/view/AlertsView.java	(date 1763752830403)
+@@ -1,4 +1,57 @@
+ package view;
+ 
+-public class AlertsView {
++import entities.Alert;
++import interface_adapter.alerts.AlertsController;
++import interface_adapter.alerts.AlertsViewModel;
++
++import javax.swing.*;
++import java.awt.*;
++
++public class AlertsView extends JPanel {
++    private final String viewName = "alerts";
++    private final AlertsController controller;
++    private final AlertsViewModel viewModel;
++
++    private final DefaultListModel<String> listModel = new DefaultListModel<>();
++    private final JList<String> list = new JList<>(listModel);
++    private final JButton refreshButton = new JButton("Refresh Alerts");
++    private final JLabel statusLabel = new JLabel(" ");
++
++    public AlertsView(AlertsController controller, AlertsViewModel viewModel) {
++        this.controller = controller;
++        this.viewModel = viewModel;
++
++        setLayout(new BorderLayout());
++
++        add(new JScrollPane(list), BorderLayout.CENTER);
++        JPanel top = new JPanel(new BorderLayout());
++        top.add(refreshButton, BorderLayout.WEST);
++        top.add(statusLabel, BorderLayout.CENTER);
++        add(top, BorderLayout.NORTH);
++
++        refreshButton.addActionListener(e -> {
++            statusLabel.setText("Loading...");
++            controller.execute();
++        });
++
++        // Subscribe to view model changes
++        viewModel.addPropertyChangeListener(evt -> updateFromModel());
++    }
++
++    private void updateFromModel() {
++        listModel.clear();
++        if (!viewModel.isSuccess()) {
++            statusLabel.setText(viewModel.getErrorMessage() == null ? "Failed to load alerts" : viewModel.getErrorMessage());
++            return;
++        }
++        statusLabel.setText("Loaded " + viewModel.getAlerts().size() + " alerts");
++        for (Alert a : viewModel.getAlerts()) {
++            String line = (a.getHeaderText() == null || a.getHeaderText().isEmpty() ? "Alert" : a.getHeaderText())
++                    + " | Effect: " + a.getEffect()
++                    + (a.getRouteIds().isEmpty() ? "" : " | Routes: " + String.join(",", a.getRouteIds()));
++            listModel.addElement(line);
++        }
++    }
++
++    public String getViewName() { return viewName; }
+ }
+Index: src/main/java/interface_adapter/alerts/AlertsPresenter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package interface_adapter.alerts;\r\n\r\npublic class AlertsPresenter {\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/interface_adapter/alerts/AlertsPresenter.java b/src/main/java/interface_adapter/alerts/AlertsPresenter.java
+--- a/src/main/java/interface_adapter/alerts/AlertsPresenter.java	(revision b2c2cd0b320cb2831dd78b4285b580e6886db758)
++++ b/src/main/java/interface_adapter/alerts/AlertsPresenter.java	(date 1763752812878)
+@@ -1,4 +1,22 @@
+ package interface_adapter.alerts;
+ 
+-public class AlertsPresenter {
++import use_case.alerts.AlertsOutputBoundary;
++import use_case.alerts.AlertsOutputData;
++
++public class AlertsPresenter implements AlertsOutputBoundary {
++
++    private final AlertsViewModel viewModel;
++
++    public AlertsPresenter(AlertsViewModel viewModel) {
++        this.viewModel = viewModel;
++    }
++
++    @Override
++    public void present(AlertsOutputData outputData) {
++        viewModel.setLoading(false);
++        viewModel.setSuccess(outputData.isSuccess());
++        viewModel.setErrorMessage(outputData.getErrorMessage());
++        viewModel.setAlerts(outputData.getAlerts());
++        viewModel.firePropertyChanged();
++    }
+ }
+Index: src/main/java/use_case/alerts/AlertsOutputData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package use_case.alerts;\r\n\r\npublic class AlertsOutputData {\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/use_case/alerts/AlertsOutputData.java b/src/main/java/use_case/alerts/AlertsOutputData.java
+--- a/src/main/java/use_case/alerts/AlertsOutputData.java	(revision b2c2cd0b320cb2831dd78b4285b580e6886db758)
++++ b/src/main/java/use_case/alerts/AlertsOutputData.java	(date 1763752780992)
+@@ -1,4 +1,20 @@
+ package use_case.alerts;
+ 
++import entities.Alert;
++import java.util.List;
++
+ public class AlertsOutputData {
++    private final boolean success;
++    private final String errorMessage;
++    private final List<Alert> alerts;
++
++    public AlertsOutputData(boolean success, String errorMessage, List<Alert> alerts) {
++        this.success = success;
++        this.errorMessage = errorMessage;
++        this.alerts = alerts;
++    }
++
++    public boolean isSuccess() { return success; }
++    public String getErrorMessage() { return errorMessage; }
++    public List<Alert> getAlerts() { return alerts; }
+ }
+Index: src/main/java/app/AppBuilder.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package app;\r\n\r\nimport data_access.CacheAccessObject;\r\nimport interface_adapter.ViewManagerModel;\r\nimport interface_adapter.map.MapPresenter;\r\nimport interface_adapter.map.MapViewModel;\r\nimport use_case.map.MapInputBoundary;\r\nimport use_case.map.MapInteractor;\r\nimport view.MapView;\r\nimport view.ViewManager;\r\nimport use_case.map.MapOutputBoundary;\r\n\r\nimport javax.swing.*;\r\nimport java.awt.*;\r\n\r\npublic class AppBuilder extends JFrame {\r\n    private final JPanel cardPanel = new JPanel();\r\n    private final CardLayout cardLayout = new CardLayout();\r\n    private static final String TITLE = \"Real-Time TTC Map Viewer\";\r\n    final ViewManagerModel viewManagerModel = new ViewManagerModel();\r\n    ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);\r\n\r\n    // DAO using file cache\r\n    final CacheAccessObject cacheAccessObject = new CacheAccessObject();\r\n\r\n    // For other views: declare view and view model, then implement methods to add view and use case interactor\r\n    private MapView mapView;\r\n    private MapViewModel mapViewModel;\r\n\r\n    public AppBuilder() { cardPanel.setLayout(cardLayout); }\r\n\r\n    public AppBuilder addMapView() {\r\n        mapViewModel = new MapViewModel();\r\n        mapView = new MapView(mapViewModel);\r\n        cardPanel.add(mapView.getMapViewer());\r\n        return this;\r\n    }\r\n\r\n    public AppBuilder addMapUseCase() {\r\n        final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);\r\n        final MapInputBoundary MapInteractor = new MapInteractor(cacheAccessObject, mapOutputBoundary);\r\n        return this;\r\n    }\r\n\r\n    public JFrame build() {\r\n        final JFrame app = new JFrame(TITLE);\r\n        app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);\r\n\r\n        app.setContentPane(cardPanel);\r\n\r\n        viewManagerModel.setState(mapView.getViewName()); // Default view\r\n        viewManagerModel.firePropertyChange();\r\n\r\n        return app;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/app/AppBuilder.java b/src/main/java/app/AppBuilder.java
+--- a/src/main/java/app/AppBuilder.java	(revision b2c2cd0b320cb2831dd78b4285b580e6886db758)
++++ b/src/main/java/app/AppBuilder.java	(date 1763752855861)
+@@ -2,13 +2,21 @@
+ 
+ import data_access.CacheAccessObject;
+ import interface_adapter.ViewManagerModel;
++import interface_adapter.alerts.AlertsController;
++import interface_adapter.alerts.AlertsPresenter;
++import interface_adapter.alerts.AlertsViewModel;
+ import interface_adapter.map.MapPresenter;
+ import interface_adapter.map.MapViewModel;
++import use_case.alerts.AlertsInputBoundary;
++import use_case.alerts.AlertsInteractor;
+ import use_case.map.MapInputBoundary;
+ import use_case.map.MapInteractor;
+ import view.MapView;
+ import view.ViewManager;
+ import use_case.map.MapOutputBoundary;
++import view.AlertsView;
++import api.AlertDataBase;
++import api.AlertDataBaseAPI;
+ 
+ import javax.swing.*;
+ import java.awt.*;
+@@ -26,13 +34,15 @@
+     // For other views: declare view and view model, then implement methods to add view and use case interactor
+     private MapView mapView;
+     private MapViewModel mapViewModel;
++    private AlertsView alertsView;
++    private AlertsViewModel alertsViewModel;
+ 
+     public AppBuilder() { cardPanel.setLayout(cardLayout); }
+ 
+     public AppBuilder addMapView() {
+         mapViewModel = new MapViewModel();
+         mapView = new MapView(mapViewModel);
+-        cardPanel.add(mapView.getMapViewer());
++        cardPanel.add(mapView, mapView.getViewName());
+         return this;
+     }
+ 
+@@ -42,13 +52,38 @@
+         return this;
+     }
+ 
++    public AppBuilder addAlertsView() {
++        alertsViewModel = new AlertsViewModel();
++        // Presenter and controller will be wired in addAlertsUseCase
++        // For layout switching, add with a name
++        // Temporarily create a no-op controller; will be replaced in addAlertsUseCase
++        AlertsController temp = new AlertsController(inputData -> {});
++        alertsView = new AlertsView(temp, alertsViewModel);
++        cardPanel.add(alertsView, alertsView.getViewName());
++        return this;
++    }
++
++    public AppBuilder addAlertsUseCase() {
++        final AlertsPresenter presenter = new AlertsPresenter(alertsViewModel);
++        final AlertDataBase gateway = new AlertDataBaseAPI();
++        final AlertsInputBoundary interactor = new AlertsInteractor(gateway, presenter);
++        final AlertsController controller = new AlertsController(interactor);
++        // Replace temp controller action listener by re-adding listener through button click; simplest is to set a new view
++        // Recreate the view with the real controller
++        cardPanel.remove(alertsView);
++        alertsView = new AlertsView(controller, alertsViewModel);
++        cardPanel.add(alertsView, alertsView.getViewName());
++        return this;
++    }
++
+     public JFrame build() {
+         final JFrame app = new JFrame(TITLE);
+         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+ 
+         app.setContentPane(cardPanel);
+ 
+-        viewManagerModel.setState(mapView.getViewName()); // Default view
++        // Set default view to alerts to make it visible for now
++        viewManagerModel.setState(alertsView != null ? alertsView.getViewName() : mapView.getViewName()); // Default view
+         viewManagerModel.firePropertyChange();
+ 
+         return app;
