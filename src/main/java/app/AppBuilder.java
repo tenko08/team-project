@@ -39,6 +39,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 public class AppBuilder extends JFrame {
     private final JPanel cardPanel = new JPanel();
@@ -64,12 +66,45 @@ public class AppBuilder extends JFrame {
     private SearchByRouteViewModel searchByRouteViewModel;
     private SearchByRouteController searchByRouteController;
 
-    public AppBuilder() { cardPanel.setLayout(cardLayout); }
+    private final String[] themeList = {
+            UIManager.getSystemLookAndFeelClassName(),
+            "javax.swing.plaf.metal.MetalLookAndFeel",
+            "javax.swing.plaf.nimbus.NimbusLookAndFeel",
+            "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
+            "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
+            "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"
+    };
+
+    private int currentThemeIndex = 0;
+
+    public AppBuilder() {
+        setTheme(0);
+        cardPanel.setLayout(cardLayout);
+    }
+
+    public void setTheme(int themeIndex) {
+        try {
+            UIManager.setLookAndFeel(themeList[themeIndex]);
+
+            for (Frame frame : Frame.getFrames()) {
+                updateLAFRecursively(frame);
+            }
+        } catch (UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException |
+                 ClassNotFoundException e) {
+            System.out.println("Error loading theme: " + e);
+        }
+    }
+    public static void updateLAFRecursively(Window window) {
+        for (Window childWindow : window.getOwnedWindows()) {
+            updateLAFRecursively(childWindow);
+        }
+        SwingUtilities.updateComponentTreeUI(window);
+    }
 
     public AppBuilder addMapView() {
         mapViewModel = new MapViewModel();
         mapView = new MapView(mapViewModel);
-        cardPanel.add(mapView.getMapViewer(),mapView.getViewName());
+        cardPanel.add(mapView.getMapViewer(), mapView.getViewName());
         return this;
     }
 
@@ -81,8 +116,8 @@ public class AppBuilder extends JFrame {
 
     public AppBuilder addFindNearestRouteView() {
         findNearestRouteViewModel = new FindNearestRouteViewModel();
-        findNearestRouteView = new FindNearestRouteView(findNearestRouteViewModel);
-        cardPanel.add(findNearestRouteView,findNearestRouteView.getViewName());
+        findNearestRouteView = new FindNearestRouteView(viewManagerModel, findNearestRouteViewModel);
+        cardPanel.add(findNearestRouteView, findNearestRouteView.getViewName());
         return this;
     }
 
@@ -205,6 +240,21 @@ public class AppBuilder extends JFrame {
         toolBar.add(alertsBtn);
         toolBar.add(findNearestRouteBtn);
         toolBar.add(searchByRouteBtn);
+
+        toolBar.add(Box.createHorizontalGlue());
+
+        JLabel themeNum = new JLabel((currentThemeIndex+1) + "/" + themeList.length);
+        themeNum.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JButton changeThemeBtn = new JButton("Change Theme");
+        changeThemeBtn.addActionListener(e -> {
+            currentThemeIndex = (currentThemeIndex + 1) % themeList.length;
+            themeNum.setText((currentThemeIndex+1) + "/" + themeList.length);
+            setTheme(currentThemeIndex);
+
+        });
+        toolBar.add(changeThemeBtn);
+        toolBar.add(themeNum);
+
         return toolBar;
     }
 }

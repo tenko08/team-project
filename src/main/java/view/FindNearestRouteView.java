@@ -2,6 +2,7 @@ package view;
 
 import entities.BusStop;
 import entities.Route;
+import interface_adapter.ViewManagerModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
 import interface_adapter.find_nearest_route.FindNearestRouteState;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
@@ -18,54 +19,65 @@ import java.beans.PropertyChangeListener;
 public class FindNearestRouteView extends JPanel implements ActionListener, PropertyChangeListener {
     private final String viewName = "FindNearestRouteView";
     private final FindNearestRouteViewModel viewModel;
+    private final ViewManagerModel viewManagerModel;
 
     private final JTextField longInputField = new JTextField(15);
     private final JTextField latInputField = new JTextField(15);
     private final JLabel errorField = new JLabel("");
+    private final JButton backButton = new JButton("← Back to Map");
 
     private final JTextArea outputArea = new JTextArea(6, 25);
     private FindNearestRouteController controller = null;
 
-    public FindNearestRouteView(FindNearestRouteViewModel viewModel) {
+    public FindNearestRouteView(ViewManagerModel viewManagerModel, FindNearestRouteViewModel viewModel) {
         this.viewModel = viewModel;
+        this.viewManagerModel = viewManagerModel;
         this.viewModel.addPropertyChangeListener(this);
 
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        this.setLayout(new BorderLayout());
+//        this.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topBar.add(backButton);
+        this.add(topBar, BorderLayout.NORTH);
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        this.add(contentPanel, BorderLayout.CENTER);
 
         JLabel title = new JLabel("Find Nearest Route");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 22f));
-        this.add(title);
-        this.add(Box.createVerticalStrut(15));
+        contentPanel.add(title);
+        contentPanel.add(Box.createVerticalStrut(15));
 
 
         JLabel lonLabel = new JLabel("---Longitude---");
         lonLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(lonLabel);
+        contentPanel.add(lonLabel);
         longInputField.setMaximumSize(new Dimension(300, 30));
-        this.add(longInputField);
-        this.add(Box.createVerticalStrut(10));
+        contentPanel.add(longInputField);
+        contentPanel.add(Box.createVerticalStrut(10));
 
         JLabel latLabel = new JLabel("---Latitude---");
         latLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(latLabel);
+        contentPanel.add(latLabel);
         latInputField.setMaximumSize(new Dimension(300, 30));
-        this.add(latInputField);
-        this.add(Box.createVerticalStrut(10));
+        contentPanel.add(latInputField);
+        contentPanel.add(Box.createVerticalStrut(10));
 
         errorField.setForeground(Color.RED);
         errorField.setAlignmentX(Component.CENTER_ALIGNMENT);
         errorField.setPreferredSize(new Dimension(300, 20));
         errorField.setMinimumSize(new Dimension(300, 20));
         errorField.setMaximumSize(new Dimension(300, 20));
-        this.add(errorField);
-        this.add(Box.createVerticalStrut(10));
+        contentPanel.add(errorField);
+        contentPanel.add(Box.createVerticalStrut(10));
 
         JButton searchBtn = new JButton("Search");
         searchBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(searchBtn);
-        this.add(Box.createVerticalStrut(20));
+        contentPanel.add(searchBtn);
+        contentPanel.add(Box.createVerticalStrut(20));
         searchBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -99,7 +111,7 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         outputArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(outputArea);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Result"));
-        this.add(scrollPane);
+        contentPanel.add(scrollPane);
 
 //        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 //
