@@ -6,4 +6,8 @@ public class SearchByRouteInputData {
     public SearchByRouteInputData(String routeNumber) {
         this.routeNumber = routeNumber;
     }
+
+    public String getRouteNumber() {
+        return routeNumber;
+    }
 }

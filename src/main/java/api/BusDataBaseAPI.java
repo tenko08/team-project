@@ -4,6 +4,7 @@ import entities.Bus;
 
 import com.google.transit.realtime.GtfsRealtime;
 import entities.Position;
+import entities.Route;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -224,6 +225,129 @@ public class BusDataBaseAPI implements BusDataBase {
         return destinations.getOrDefault(routeId, "Various Destinations");
     }
 
+    public Map<String, Object> getBusesByRoute(String routeNumber) {
+        Map<String, Object> result = new HashMap<>();
+        final OkHttpClient client = new OkHttpClient();
+        final Request request = new Request.Builder().url(API_URL).build();
+
+        List<Bus> buses = new ArrayList<>();
+        Route route = null;
+
+        try {
+            final Response response = client.newCall(request).execute();
+            final byte[] bytes = response.body().bytes();
+
+            GtfsRealtime.FeedMessage feed = GtfsRealtime.FeedMessage.parseFrom(bytes);
+
+            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
+//                System.out.println(entity);
+                if (entity.hasVehicle()) {
+                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
+                    
+                    // Extract route ID from trip descriptor
+                    String routeId = null;
+                    if (vp.hasTrip() && vp.getTrip().hasRouteId()) {
+                        routeId = vp.getTrip().getRouteId();
+                    }
+
+                    // Only process buses matching the requested route
+                    if (routeId != null && routeId.equals(routeNumber)) {
+                        // Create route object if not already created
+                        if (route == null) {
+                            try {
+                                int routeNum = Integer.parseInt(routeNumber);
+                                route = new Route(routeNum);
+                            } catch (NumberFormatException e) {
+                                // If route number can't be parsed as int, use 0 as default
+                                route = new Route(0);
+                            }
+                        }
+
+                        int vehicleId = -1;
+                        Position position = null;
+                        String occupancy = "UNKNOWN";
+
+                        if (vp.hasVehicle() && vp.getVehicle().hasId()) {
+                            vehicleId = Integer.parseInt(vp.getVehicle().getId());
+                        }
+
+                        if (vp.hasPosition()) {
+                            position = new Position(
+                                vp.getPosition().getLatitude(),
+                                vp.getPosition().getLongitude(),
+                                vp.getPosition().getBearing(),
+                                vp.getPosition().getSpeed()
+                            );
+                        }
+
+                        if (vp.hasOccupancyStatus()) {
+                            occupancy = String.valueOf(vp.getOccupancyStatus());
+                        }
+
+                        // Get direction from trip
+//                        String direction = null;
+//                        if (vp.hasTrip() && vp.getTrip().hasDirectionId()) {
+//                            direction = vp.getTrip().getDirectionId() == 0 ? "Outbound" : "Inbound";
+//                        }
+
+                        // Create Bus entity with direction
+                        Bus bus = new Bus(vehicleId, position, occupancy);
+                        buses.add(bus);
+                    }
+                }
+            }
+
+            // Cache the result
+            Map<String, Object> routeData = new HashMap<>();
+            routeData.put("route", route);
+            routeData.put("buses", buses);
+            routeData.put("routeNumber", routeNumber);
+            routeData.put("lastUpdated", new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            cachedData.put("route_" + routeNumber, routeData);
+
+            if (buses.isEmpty() || route == null) {
+                result.put("success", false);
+                result.put("message", "Route not found");
+            } else {
+                result.put("success", true);
+                result.put("route", route);
+                result.put("buses", buses);
+                result.put("routeNumber", routeNumber);
+                result.put("cached", false);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return handleCachedRouteData(routeNumber);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return handleCachedRouteData(routeNumber);
+        }
+
+        return result;
+    }
+
+    // 处理缓存的路由数据（当API调用失败时）
+    private Map<String, Object> handleCachedRouteData(String routeNumber) {
+        Map<String, Object> result = new HashMap<>();
+
+        // Check cache
+        Map<String, Object> cached = (Map<String, Object>) cachedData.get("route_" + routeNumber);
+        if (cached != null) {
+            result.put("success", true);
+            result.put("route", cached.get("route"));
+            result.put("buses", cached.get("buses"));
+            result.put("routeNumber", routeNumber);
+            result.put("cached", true);
+            result.put("message", "Displaying cached data. API call failed.");
+        } else {
+            result.put("success", false);
+            result.put("message", "Route not found. Unable to fetch data.");
+        }
+
+        return result;
+    }
+
     // 静态数据回退处理
     private Map<String, Object> handleStaticDataFallback(String stopId) {
         Map<String, Object> result = new HashMap<>();
@@ -253,7 +377,8 @@ public class BusDataBaseAPI implements BusDataBase {
     public static void main(String[] args) {
         // 测试API
         BusDataBaseAPI api = new BusDataBaseAPI();
-        api.getAllBuses();
+//        api.getAllBuses();
+        System.out.println(api.getBusesByRoute("36"));
 //
 //        // 测试时刻表查询
 //        Map<String, Object> schedule = api.getBusSchedule("12345");
