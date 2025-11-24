@@ -4,6 +4,10 @@ import entities.Route;
 import use_case.occupancy.OccupancyInputBoundary;
 import use_case.occupancy.OccupancyInputData;
 
+/**
+ * Controller for the Occupancy Use Case.
+ * Handles user input and delegates to the interactor.
+ */
 public class OccupancyController {
     private final OccupancyInputBoundary occupancyUseCaseInteractor;
 

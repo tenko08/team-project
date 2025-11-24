@@ -1,10 +1,16 @@
 package app;
 
-import entities.*;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
+import entities.Bus;
+import entities.BusStop;
+import entities.Position;
+import entities.Route;
+import entities.Trip;
 
 
 public class MainFrame {
@@ -19,7 +25,10 @@ public class MainFrame {
                     .addFindNearestRouteView()
                     .addFindNearestRouteUseCase()
                     .addAlertsView()
-                    .addAlertsUseCase()
+                    .addSearchByRouteUseCase()
+                    .addSearchByRouteView()
+                    .addOccupancyUseCase()
+                    .addOccupancyView()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();

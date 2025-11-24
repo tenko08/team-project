@@ -8,6 +8,17 @@ import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
+import interface_adapter.occupancy.OccupancyController;
+import interface_adapter.occupancy.OccupancyPresenter;
+import interface_adapter.occupancy.OccupancyViewModel;
+import interface_adapter.search_by_route.SearchByRouteController;
+import interface_adapter.search_by_route.SearchByRouteGateway;
+import interface_adapter.search_by_route.SearchByRouteGatewayImpl;
+import interface_adapter.search_by_route.SearchByRoutePresenter;
+import interface_adapter.search_by_route.SearchByRouteViewModel;
+import use_case.alerts.AlertsInputBoundary;
+import use_case.alerts.AlertsInteractor;
+import use_case.alerts.AlertsOutputBoundary;
 import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
 import use_case.find_nearest_route.FindNearestRouteInputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInteractor;
@@ -20,8 +31,16 @@ import use_case.alerts.AlertsInteractor;
 import use_case.alerts.AlertsOutputBoundary;
 import use_case.map.MapInputBoundary;
 import use_case.map.MapInteractor;
+import use_case.map.MapOutputBoundary;
+import use_case.occupancy.OccupancyInputBoundary;
+import use_case.occupancy.OccupancyInteractor;
+import use_case.occupancy.OccupancyOutputBoundary;
+import use_case.search_by_route.SearchByRouteInteractor;
+import view.AlertsView;
 import view.FindNearestRouteView;
 import view.MapView;
+import view.OccupancyView;
+import view.SearchByRouteView;
 import view.ViewManager;
 import use_case.map.MapOutputBoundary;
 import view.AlertsView;
@@ -51,6 +70,14 @@ public class AppBuilder extends JFrame {
     private AlertsView alertsView;
     private AlertsViewModel alertsViewModel;
     private AlertsController alertsController;
+
+    private SearchByRouteView searchByRouteView;
+    private SearchByRouteViewModel searchByRouteViewModel;
+    private SearchByRouteController searchByRouteController;
+
+    private OccupancyView occupancyView;
+    private OccupancyViewModel occupancyViewModel;
+    private OccupancyController occupancyController;
 
     public AppBuilder() { cardPanel.setLayout(cardLayout); }
 
@@ -124,6 +151,43 @@ public class AppBuilder extends JFrame {
         return this;
     }
 
+    public AppBuilder addSearchByRouteUseCase() {
+        searchByRouteViewModel = new SearchByRouteViewModel();
+        SearchByRouteGateway gateway = new SearchByRouteGatewayImpl(new BusDataBaseAPI());
+        SearchByRoutePresenter presenter = new SearchByRoutePresenter(searchByRouteViewModel);
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        searchByRouteController = new SearchByRouteController(interactor);
+        return this;
+    }
+
+    public AppBuilder addSearchByRouteView() {
+        if (searchByRouteController == null || searchByRouteViewModel == null) {
+            addSearchByRouteUseCase();
+        }
+        searchByRouteView = new SearchByRouteView(searchByRouteController, searchByRouteViewModel, viewManagerModel);
+        cardPanel.add(searchByRouteView, searchByRouteView.getViewName());
+        return this;
+    }
+
+    public AppBuilder addOccupancyUseCase() {
+        occupancyViewModel = new OccupancyViewModel();
+        final OccupancyOutputBoundary presenter = new OccupancyPresenter(occupancyViewModel);
+        final OccupancyInputBoundary interactor = new OccupancyInteractor(new BusDataBaseAPI(), presenter);
+        occupancyController = new OccupancyController(interactor);
+        return this;
+    }
+
+    public AppBuilder addOccupancyView() {
+        if (occupancyViewModel == null || occupancyController == null) {
+            // Ensure use case is initialized before view
+            addOccupancyUseCase();
+        }
+        occupancyView = new OccupancyView(occupancyViewModel);
+        occupancyView.setController(occupancyController);
+        cardPanel.add(occupancyView, occupancyView.getViewName());
+        return this;
+    }
+
     public JFrame build() {
         final JFrame app = new JFrame(TITLE);
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -164,8 +228,26 @@ public class AppBuilder extends JFrame {
             viewManagerModel.firePropertyChange();
         });
 
+        JButton searchByRouteBtn = new JButton("Search by Route");
+        searchByRouteBtn.addActionListener(e -> {
+            if (searchByRouteView != null) {
+                viewManagerModel.setState(searchByRouteView.getViewName());
+                viewManagerModel.firePropertyChange();
+            }
+        });
+
+        JButton occupancyBtn = new JButton("Occupancy");
+        occupancyBtn.addActionListener(e -> {
+            if (occupancyView != null) {
+                viewManagerModel.setState(occupancyView.getViewName());
+                viewManagerModel.firePropertyChange();
+            }
+        });
+
         toolBar.add(alertsBtn);
         toolBar.add(findNearestRouteBtn);
+        toolBar.add(searchByRouteBtn);
+        toolBar.add(occupancyBtn);
         return toolBar;
     }
 }
