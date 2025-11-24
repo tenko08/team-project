@@ -18,8 +18,10 @@ public class MainFrame {
                     .addMapUseCase()
                     .addFindNearestRouteView()
                     .addFindNearestRouteUseCase()
-                    .addAlertsView()
                     .addAlertsUseCase()
+                    .addAlertsView()
+                    .addSearchByRouteUseCase()
+                    .addSearchByRouteView()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();
