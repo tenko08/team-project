@@ -20,6 +20,10 @@ public class BusStop {
         return id;
     }
 
+    public String getName(){
+        return name;
+    }
+
     public int getStopSequence() {
         return stopSequence;
     }

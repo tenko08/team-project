@@ -16,8 +16,10 @@ public class MainFrame {
             JFrame app = appBuilder
                     .addMapView()
                     .addMapUseCase()
-                    .addAlertsUseCase()
+                    .addFindNearestRouteView()
+                    .addFindNearestRouteUseCase()
                     .addAlertsView()
+                    .addAlertsUseCase()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();
