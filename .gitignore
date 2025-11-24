@@ -12,6 +12,9 @@ target/
 .idea/misc.xml
 .idea/vcs.xml
 .idea/workspace.xml
+# CheckStyle-IDEA
+.idea/checkstyle-idea.xml
+.idea/checkstyle-idea/
 *.iws
 *.iml
 *.ipr
