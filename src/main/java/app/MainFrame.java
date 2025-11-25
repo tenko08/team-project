@@ -110,6 +110,7 @@ public class MainFrame {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        });
+        }
+        );
     }
 }
