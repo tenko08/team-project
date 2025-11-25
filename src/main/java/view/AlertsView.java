@@ -20,7 +20,7 @@ public class AlertsView extends JPanel {
     // Table view (optional) to make scanning easier
     private final JTable table = new JTable();
     private final javax.swing.table.DefaultTableModel tableModel =
-            new javax.swing.table.DefaultTableModel(new Object[]{"Summary", "Effect", "Routes", "Stops"}, 0) {
+            new javax.swing.table.DefaultTableModel(new Object[]{"Summary", "Effect", "routes.csv", "Stops"}, 0) {
                 @Override public boolean isCellEditable(int row, int column) { return false; }
             };
     private final JToggleButton toggleTableBtn = new JToggleButton("Table View");
@@ -202,7 +202,7 @@ public class AlertsView extends JPanel {
             // Label the numbers explicitly as route numbers
             String routesPart = a.getRouteIds().isEmpty()
                     ? "All routes"
-                    : "Routes: " + String.join(", ", a.getRouteIds());
+                    : "routes.csv: " + String.join(", ", a.getRouteIds());
 
             String stopsPart = a.getStopIds().isEmpty()
                     ? ""

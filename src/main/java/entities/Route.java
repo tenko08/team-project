@@ -19,7 +19,6 @@ public class Route {
     public int getRouteNumber() {
         return routeNumber;
     }
-
     public List<Bus> getBusList() {
         return busList;
     }
@@ -28,7 +27,7 @@ public class Route {
     }
 
     // --- Setters ---
-    public void addTrip(Bus bus) {
+    public void addBus(Bus bus) {
         this.busList.add(bus);
     }
 

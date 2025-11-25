@@ -15,6 +15,12 @@ public class BusStop {
         this.position = position;
     }
 
+    public BusStop(int id, String name, Position position) {
+        this.id = id;
+        this.name = name;
+        this.position = position;
+    }
+
     // --- Getters ---
     public int getId() {
         return id;
@@ -31,6 +37,13 @@ public class BusStop {
     public Position getPosition() {
         return position;
     }
+
+    // --- Setters ---
+    public void setStopSequence(int stopSequence) {
+        this.stopSequence = stopSequence;
+    }
+
+
 
     @Override
     public String toString() {
