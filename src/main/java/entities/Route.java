@@ -6,11 +6,11 @@ import java.util.Map;
 
 public class Route {
     private final int routeNumber;
-    private List<Trip> tripList;
+    private List<Bus> busList;
     private List<BusStop> busStopList;
 
     public Route(int routeNumber) {
-        this.tripList = new ArrayList<Trip>();
+        this.busList = new ArrayList<Bus>();
         this.busStopList = new ArrayList<BusStop>();
         this.routeNumber = routeNumber;
     }
@@ -20,16 +20,16 @@ public class Route {
         return routeNumber;
     }
 
-    public List<Trip> getTripList() {
-        return tripList;
+    public List<Bus> getBusList() {
+        return busList;
     }
     public List<BusStop> getBusStopList() {
         return busStopList;
     }
 
     // --- Setters ---
-    public void addTrip(Trip trip) {
-        this.tripList.add(trip);
+    public void addTrip(Bus bus) {
+        this.busList.add(bus);
     }
 
     public void addBusStop(BusStop busStop) {
@@ -53,7 +53,7 @@ public class Route {
     public String toString() {
         return "Route{" +
                 "routeNum='" + routeNumber + '\'' +
-                ", tripListSize=" + tripList.size() +
+                ", busListSize=" + busList.size() +
                 ", busListSize='" + busStopList.size() + '\'' +
                 '}';
     }
