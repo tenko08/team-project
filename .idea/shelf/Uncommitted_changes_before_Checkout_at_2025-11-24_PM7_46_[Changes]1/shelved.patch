@@ -1,0 +1,68 @@
+Index: src/main/java/entities/Bus.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package entities;\n\npublic class Bus {\n    private int id ;\n    public String routeId;\n    private double latitude;\n    private double longitude;\n    private int occupancy;\n    private String timestamp;\n\n    public Bus() {\n        // 可以设置默认值或留空\n        this.id = 0;\n        this.routeId = \"\";\n        this.latitude = 0.0;\n        this.longitude = 0.0;\n        this.occupancy = 0;\n        this.timestamp = \"\";\n    }\n\n    // 原有的有参构造函数\n    public Bus(int id, String routeId, double latitude, double longitude, int occupancy, String timestamp) {\n        this.id = id;\n        this.routeId = routeId;\n        this.latitude = latitude;\n        this.longitude = longitude;\n        this.occupancy = occupancy;\n        this.timestamp = timestamp;\n    }\n\n    public int getId(){\n        return id;\n    }\n    public String getRouteId(){\n        return routeId;\n    }\n    public double getLatitude(){\n        return latitude;\n    }\n    public double getLongitude(){\n        return longitude;\n    }\n    public int getOccupancy() {\n        return occupancy;\n    }\n    public String getTimestamp(){\n        return timestamp;\n    private int id;\n    private Position position;\n    private String occupancy;\n\n    public Bus(int id, Position position, String occupancy) {\n        this.id = id;\n        this.position = position;\n        this.occupancy = occupancy;\n    }\n\n    // --- Getters ---\n    public int getId() {\n        return id;\n    }\n\n    public Position getPosition() {\n        return position;\n    }\n\n    public String getOccupancy() {\n        return occupancy;\n    }\n\n    // --- Setters ---\n//    public void setId(String id) { idk if we need these\n//        this.id = id;\n//    }\n//\n//    public void setRoute(Route route) {\n//        this.route = route;\n//    }\n\n    public void setPosition(Position position) {\n        this.position = position;\n    }\n\n    public void setOccupancy(String occupancy) {\n        this.occupancy = occupancy;\n    }\n\n    // --- Utility ---\n    public boolean isEmpty() {\n        return \"EMPTY\".equalsIgnoreCase(occupancy);\n    }\n\n//    public boolean matchesRoute(int routeNumber) {\n//        return trip != null && routeNumber  == trip.getRouteNumber();\n//    }\n\n    @Override\n    public String toString() {\n        return \"Vehicle{\" +\n                \"id='\" + id + '\\'' +\n//                \", route=\" + trip +\n                \", position=\" + position +\n                \", occupancy='\" + occupancy + '\\'' +\n                '}';\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/entities/Bus.java b/src/main/java/entities/Bus.java
+--- a/src/main/java/entities/Bus.java	(revision fcb1ee65d39fd29ed1720f7831bab7c3ae4e74c7)
++++ b/src/main/java/entities/Bus.java	(date 1764031475492)
+@@ -1,50 +1,6 @@
+ package entities;
+ 
+ public class Bus {
+-    private int id ;
+-    public String routeId;
+-    private double latitude;
+-    private double longitude;
+-    private int occupancy;
+-    private String timestamp;
+-
+-    public Bus() {
+-        // 可以设置默认值或留空
+-        this.id = 0;
+-        this.routeId = "";
+-        this.latitude = 0.0;
+-        this.longitude = 0.0;
+-        this.occupancy = 0;
+-        this.timestamp = "";
+-    }
+-
+-    // 原有的有参构造函数
+-    public Bus(int id, String routeId, double latitude, double longitude, int occupancy, String timestamp) {
+-        this.id = id;
+-        this.routeId = routeId;
+-        this.latitude = latitude;
+-        this.longitude = longitude;
+-        this.occupancy = occupancy;
+-        this.timestamp = timestamp;
+-    }
+-
+-    public int getId(){
+-        return id;
+-    }
+-    public String getRouteId(){
+-        return routeId;
+-    }
+-    public double getLatitude(){
+-        return latitude;
+-    }
+-    public double getLongitude(){
+-        return longitude;
+-    }
+-    public int getOccupancy() {
+-        return occupancy;
+-    }
+-    public String getTimestamp(){
+-        return timestamp;
+     private int id;
+     private Position position;
+     private String occupancy;
+@@ -103,4 +59,4 @@
+                 ", occupancy='" + occupancy + '\'' +
+                 '}';
+     }
+-}
++}
+\ No newline at end of file
