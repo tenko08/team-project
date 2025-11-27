@@ -21,7 +21,7 @@ public class FindNearestRouteInteractor implements FindNearestRouteInputBoundary
     public void execute(FindNearestRouteInputData inputData) {
         Position p = inputData.getPosition();
         List<Route> routes = dataAccess.getAllRoutes();
-
+//        System.out.println(routes);
         if (routes.isEmpty()) {
             presenter.prepareFailView("No routes available.");
             return;
@@ -35,7 +35,7 @@ public class FindNearestRouteInteractor implements FindNearestRouteInputBoundary
             List<BusStop> stops = route.getBusStopList();
             if (stops == null || stops.isEmpty())
                 continue;
-
+//            System.out.println(stops);
             for (BusStop stop : stops) {
                 double dist = p.distanceTo(stop.getPosition());
                 if (dist < minDistance) {

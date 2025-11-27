@@ -20,13 +20,13 @@ public class AlertsView extends JPanel {
     // Table view (optional) to make scanning easier
     private final JTable table = new JTable();
     private final javax.swing.table.DefaultTableModel tableModel =
-            new javax.swing.table.DefaultTableModel(new Object[]{"Summary", "Effect", "Routes", "Stops"}, 0) {
+            new javax.swing.table.DefaultTableModel(new Object[]{"Summary", "Effect", "routes.csv", "Stops"}, 0) {
                 @Override public boolean isCellEditable(int row, int column) { return false; }
             };
     private final JToggleButton toggleTableBtn = new JToggleButton("Table View");
     private final JPanel centerCards = new JPanel(new CardLayout());
     private final JButton refreshButton = new JButton("Refresh Alerts");
-    private final JButton backButton = new JButton("Back");
+    private final JButton backButton = new JButton("← Back to Map");
     private final JLabel statusLabel = new JLabel(" ");
 
     public AlertsView(AlertsViewModel viewModel, AlertsController controller, ViewManagerModel viewManagerModel) {
@@ -202,7 +202,7 @@ public class AlertsView extends JPanel {
             // Label the numbers explicitly as route numbers
             String routesPart = a.getRouteIds().isEmpty()
                     ? "All routes"
-                    : "Routes: " + String.join(", ", a.getRouteIds());
+                    : "routes.csv: " + String.join(", ", a.getRouteIds());
 
             String stopsPart = a.getStopIds().isEmpty()
                     ? ""

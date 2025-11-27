@@ -43,7 +43,7 @@ public class BusDataBaseAPI implements BusDataBase {
 //            System.out.println(feed);
 
             for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
-//                System.out.println(entity);
+                System.out.println(entity);
                 int vehicleId = -1;
                 Position position = null;
                 String occupancy = "UNKNOWN";

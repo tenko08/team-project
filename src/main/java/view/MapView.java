@@ -40,6 +40,7 @@ public class MapView extends JPanel {
         // Set focus
         mapViewer.setZoom(7);
         mapViewer.setAddressLocation(mapViewModel.toronto);
+        System.out.println(mapViewer.getAddressLocation().getClass());
 
         // Add interactions
         MouseInputListener mia = new PanMouseInputListener(mapViewer);

@@ -2,6 +2,7 @@ package app;
 
 import api.AlertDataBaseAPI;
 import api.BusDataBaseAPI;
+import data_access.BusDataAccessObject;
 import data_access.CacheAccessObject;
 import entities.*;
 import interface_adapter.ViewManagerModel;
@@ -13,12 +14,9 @@ import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
-<<<<<<< HEAD
 import interface_adapter.occupancy.OccupancyController;
 import interface_adapter.occupancy.OccupancyPresenter;
 import interface_adapter.occupancy.OccupancyViewModel;
-=======
->>>>>>> main
 import interface_adapter.search_by_route.SearchByRouteController;
 import interface_adapter.search_by_route.SearchByRouteGateway;
 import interface_adapter.search_by_route.SearchByRouteGatewayImpl;
@@ -34,20 +32,14 @@ import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
 import use_case.map.MapInputBoundary;
 import use_case.map.MapInteractor;
 import use_case.map.MapOutputBoundary;
-<<<<<<< HEAD
 import use_case.occupancy.OccupancyInputBoundary;
 import use_case.occupancy.OccupancyInteractor;
 import use_case.occupancy.OccupancyOutputBoundary;
-=======
->>>>>>> main
 import use_case.search_by_route.SearchByRouteInteractor;
 import view.AlertsView;
 import view.FindNearestRouteView;
 import view.MapView;
-<<<<<<< HEAD
 import view.OccupancyView;
-=======
->>>>>>> main
 import view.SearchByRouteView;
 import view.ViewManager;
 
@@ -55,6 +47,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 public class AppBuilder extends JFrame {
     private final JPanel cardPanel = new JPanel();
@@ -65,6 +59,7 @@ public class AppBuilder extends JFrame {
 
     // DAO using file cache
     final CacheAccessObject cacheAccessObject = new CacheAccessObject();
+    final BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
 
     // For other views: declare view and view model, then implement methods to add view and use case interactor
     private MapView mapView;
@@ -80,16 +75,45 @@ public class AppBuilder extends JFrame {
     private SearchByRouteViewModel searchByRouteViewModel;
     private SearchByRouteController searchByRouteController;
 
-    private OccupancyView occupancyView;
-    private OccupancyViewModel occupancyViewModel;
-    private OccupancyController occupancyController;
+    private final String[] themeList = {
+//            UIManager.getSystemLookAndFeelClassName(),
+            "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
+            "javax.swing.plaf.metal.MetalLookAndFeel",
+            "javax.swing.plaf.nimbus.NimbusLookAndFeel",
+            "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
+            "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"
+    };
 
-    public AppBuilder() { cardPanel.setLayout(cardLayout); }
+    private int currentThemeIndex = 0;
+
+    public AppBuilder() {
+        setTheme(0);
+        cardPanel.setLayout(cardLayout);
+    }
+
+    public void setTheme(int themeIndex) {
+        try {
+            UIManager.setLookAndFeel(themeList[themeIndex]);
+
+            for (Frame frame : Frame.getFrames()) {
+                updateLAFRecursively(frame);
+            }
+        } catch (UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException |
+                 ClassNotFoundException e) {
+            System.out.println("Error loading theme: " + e);
+        }
+    }
+    public static void updateLAFRecursively(Window window) {
+        for (Window childWindow : window.getOwnedWindows()) {
+            updateLAFRecursively(childWindow);
+        }
+        SwingUtilities.updateComponentTreeUI(window);
+    }
 
     public AppBuilder addMapView() {
         mapViewModel = new MapViewModel();
         mapView = new MapView(mapViewModel);
-        cardPanel.add(mapView.getMapViewer(),mapView.getViewName());
+        cardPanel.add(mapView.getMapViewer(), mapView.getViewName());
         return this;
     }
 
@@ -101,8 +125,8 @@ public class AppBuilder extends JFrame {
 
     public AppBuilder addFindNearestRouteView() {
         findNearestRouteViewModel = new FindNearestRouteViewModel();
-        findNearestRouteView = new FindNearestRouteView(findNearestRouteViewModel);
-        cardPanel.add(findNearestRouteView,findNearestRouteView.getViewName());
+        findNearestRouteView = new FindNearestRouteView(viewManagerModel, findNearestRouteViewModel);
+        cardPanel.add(findNearestRouteView, findNearestRouteView.getViewName());
         return this;
     }
 
@@ -111,26 +135,29 @@ public class AppBuilder extends JFrame {
                 = new FindNearestRoutePresenter(findNearestRouteViewModel);
         // TODO: use DAO, this is tempdata
         final FindNearestRouteInputBoundary findNearestRouteInteractor
-                = new FindNearestRouteInteractor(new FindNearestRouteDataAccessInterface() {
-            @Override
-            public List<Route> getAllRoutes() {
-                List<Route> routes = new ArrayList<Route>();
-                Route route929 = new Route(929);
-                route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
-                        new Position(43.800546, -79.334889)));
-
-                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
-                        new Position(43.65386, -79.43306, 164, 0),
-                        "FEW_SEATS_AVAILABLE")));
-
-                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
-                        new Position(43.7322, -79.45838, 253, 0),
-                        "EMPTY")));
-
-                routes.add(route929);
-                return routes;
-            }
-        }, findNearestRouteOutputBoundary);
+                = new FindNearestRouteInteractor(
+                busDataAccessObject
+//                        new FindNearestRouteDataAccessInterface() {
+//            @Override
+//            public List<Route> getAllRoutes() {
+//                List<Route> routes = new ArrayList<Route>();
+//                Route route929 = new Route(929);
+//                route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
+//                        new Position(43.800546, -79.334889)));
+//
+////                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
+////                        new Position(43.65386, -79.43306, 164, 0),
+////                        "FEW_SEATS_AVAILABLE")));
+////
+////                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
+////                        new Position(43.7322, -79.45838, 253, 0),
+////                        "EMPTY")));
+//
+//                routes.add(route929);
+//                return routes;
+//            }
+//        }
+        , findNearestRouteOutputBoundary);
 
         FindNearestRouteController findNearestRouteController
                 = new FindNearestRouteController(findNearestRouteInteractor);
@@ -252,7 +279,21 @@ public class AppBuilder extends JFrame {
         toolBar.add(alertsBtn);
         toolBar.add(findNearestRouteBtn);
         toolBar.add(searchByRouteBtn);
-        toolBar.add(occupancyBtn);
+
+        toolBar.add(Box.createHorizontalGlue());
+
+        JLabel themeNum = new JLabel((currentThemeIndex+1) + "/" + themeList.length);
+        themeNum.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JButton changeThemeBtn = new JButton("Change Theme");
+        changeThemeBtn.addActionListener(e -> {
+            currentThemeIndex = (currentThemeIndex + 1) % themeList.length;
+            themeNum.setText((currentThemeIndex+1) + "/" + themeList.length);
+            setTheme(currentThemeIndex);
+
+        });
+        toolBar.add(changeThemeBtn);
+        toolBar.add(themeNum);
+
         return toolBar;
     }
 }
