@@ -32,12 +32,7 @@ public class OccupancyController {
      * @param route the route to check occupancy for
      */
     public void execute(Route route) {
-        if (route != null && route.getTripList() != null) {
-            for (entities.Trip trip : route.getTripList()) {
-                if (trip.getBus() != null) {
-                    execute(trip.getBus().getId(), route);
-                }
-            }
-        }
+        OccupancyInputData occupancyInputData = new OccupancyInputData(route);
+        occupancyUseCaseInteractor.execute(occupancyInputData);
     }
 }

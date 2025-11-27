@@ -11,6 +11,11 @@ public class OccupancyInputData {
         this.route = route;
     }
 
+    public OccupancyInputData(Route route) {
+        this.busId = -1; // Indicates no specific bus
+        this.route = route;
+    }
+
     public int getBusId() {
         return busId;
     }

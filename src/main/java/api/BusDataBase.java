@@ -9,5 +9,6 @@ public interface BusDataBase {
 
     List<Bus> getAllBuses();
 
+    List<Bus> getBusesByRouteId(int routeId);
 
 }

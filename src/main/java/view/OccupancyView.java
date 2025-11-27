@@ -26,7 +26,7 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
         this.occupancyViewModel.addPropertyChangeListener(this);
 
         setLayout(new BorderLayout());
-        
+
         // Title
         JLabel title = new JLabel("Bus Occupancy");
         title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -41,11 +41,11 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
         topPanel.add(routeInputLabel);
         topPanel.add(routeInputField);
         topPanel.add(loadButton);
-        
+
         routeLabel = new JLabel("No route selected");
         routeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         routeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        
+
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.add(topPanel, BorderLayout.CENTER);
         inputPanel.add(routeLabel, BorderLayout.SOUTH);
@@ -56,13 +56,14 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
         occupancyList = new JList<>(listModel);
         occupancyList.setFont(new Font("Arial", Font.PLAIN, 14));
         add(new JScrollPane(occupancyList), BorderLayout.CENTER);
-        
+
         // Add action listener for load button
         loadButton.addActionListener(e -> {
             if (controller != null) {
                 String routeNumber = routeInputField.getText().trim();
                 if (routeNumber.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please enter a route number", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Please enter a route number", "Invalid Input",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 // Create a route and execute occupancy check
@@ -71,12 +72,13 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
                     Route route = new Route(routeNum);
                     controller.execute(route);
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Please enter a valid route number", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Please enter a valid route number", "Invalid Input",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
     }
-    
+
     public void setController(OccupancyController controller) {
         this.controller = controller;
     }
@@ -89,12 +91,12 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
         } else {
             // Update route label
             if (state.getCurrentRoute() != null) {
-                routeLabel.setText("Route " + state.getCurrentRoute().getRouteNumber() + " - " + 
-                    state.getBusOccupancies().size() + " bus(es)");
+                routeLabel.setText("Route " + state.getCurrentRoute().getRouteNumber() + " - " +
+                        state.getBusOccupancies().size() + " bus(es)");
             } else {
                 routeLabel.setText("No route selected");
             }
-            
+
             // Update occupancy list
             listModel.clear();
             if (state.getBusOccupancies().isEmpty()) {
@@ -106,7 +108,7 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
             }
         }
     }
-    
+
     public String getViewName() {
         return viewName;
     }

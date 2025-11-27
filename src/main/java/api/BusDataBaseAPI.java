@@ -266,7 +266,7 @@ public class BusDataBaseAPI implements BusDataBase {
             GtfsRealtime.FeedMessage feed = GtfsRealtime.FeedMessage.parseFrom(bytes);
 
             for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
-//                System.out.println(entity);
+                // System.out.println(entity);
                 if (entity.hasVehicle()) {
                     GtfsRealtime.VehiclePosition vp = entity.getVehicle();
 
@@ -302,8 +302,7 @@ public class BusDataBaseAPI implements BusDataBase {
                                     vp.getPosition().getLatitude(),
                                     vp.getPosition().getLongitude(),
                                     vp.getPosition().getBearing(),
-                                    vp.getPosition().getSpeed()
-                            );
+                                    vp.getPosition().getSpeed());
                         }
 
                         if (vp.hasOccupancyStatus()) {
@@ -311,10 +310,10 @@ public class BusDataBaseAPI implements BusDataBase {
                         }
 
                         // Get direction from trip
-//                        String direction = null;
-//                        if (vp.hasTrip() && vp.getTrip().hasDirectionId()) {
-//                            direction = vp.getTrip().getDirectionId() == 0 ? "Outbound" : "Inbound";
-//                        }
+                        // String direction = null;
+                        // if (vp.hasTrip() && vp.getTrip().hasDirectionId()) {
+                        // direction = vp.getTrip().getDirectionId() == 0 ? "Outbound" : "Inbound";
+                        // }
 
                         // Create Bus entity with direction
                         Bus bus = new Bus(vehicleId, position, occupancy);
@@ -351,16 +350,25 @@ public class BusDataBaseAPI implements BusDataBase {
         return result;
     }
 
+    @Override
+    public List<Bus> getBusesByRouteId(int routeId) {
+        Map<String, Object> result = getBusesByRoute(String.valueOf(routeId));
+        if (result.containsKey("buses")) {
+            return (List<Bus>) result.get("buses");
+        }
+        return new ArrayList<>();
+    }
+
     public static void main(String[] args) {
         // 测试API
         BusDataBaseAPI api = new BusDataBaseAPI();
         api.getAllBuses();
-//
+        //
 //        // 测试时刻表查询
 //        Map<String, Object> schedule = api.getBusSchedule("12345");
 //        System.out.println("Schedule result: " + schedule);
 //        new BusDataBaseAPI().getAllBuses();
-//
+        //
 //        // 测试ETA查询
 //        Map<String, Object> eta = api.getBusETA("12345", "501");
 //        System.out.println("ETA result: " + eta);

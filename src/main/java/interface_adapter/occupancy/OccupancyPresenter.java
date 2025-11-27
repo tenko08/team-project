@@ -17,8 +17,13 @@ public class OccupancyPresenter implements OccupancyOutputBoundary {
     @Override
     public void prepareSuccessView(OccupancyOutputData outputData) {
         OccupancyState state = occupancyViewModel.getState();
-        state.setOccupancy(outputData.getOccupancyLevel());
-        state.getBusOccupancies().put(outputData.getBusId(), outputData.getOccupancyLevel());
+        if (outputData.getBusId() != -1) {
+            state.setOccupancy(outputData.getOccupancyLevel());
+            state.getBusOccupancies().put(outputData.getBusId(), outputData.getOccupancyLevel());
+        } else {
+            state.setBusOccupancies(outputData.getBusOccupancies());
+        }
+        state.setCurrentRoute(outputData.getRoute());
         state.setError(null);
         occupancyViewModel.setState(state);
         occupancyViewModel.firePropertyChange();
