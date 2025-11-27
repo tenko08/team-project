@@ -4,6 +4,8 @@ import entities.BusStop;
 import entities.Route;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
+import api.NominatimGeocodingClient;
+import api.NominatimGeocodingClient.Result;
 import interface_adapter.find_nearest_route.FindNearestRouteState;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 
@@ -28,6 +30,13 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
 
     private final JTextArea outputArea = new JTextArea(6, 25);
     private FindNearestRouteController controller = null;
+    // Geocoding
+    private final JTextField addressField = new JTextField(25);
+    private final JButton geocodeBtn = new JButton("Search address");
+    private final DefaultListModel<Result> geocodeListModel = new DefaultListModel<>();
+    private final JList<Result> geocodeResults = new JList<>(geocodeListModel);
+    private final JLabel geocodeStatus = new JLabel("");
+    private final NominatimGeocodingClient geocoder = new NominatimGeocodingClient();
 
     public FindNearestRouteView(ViewManagerModel viewManagerModel, FindNearestRouteViewModel viewModel) {
         this.viewModel = viewModel;
@@ -51,6 +60,27 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         contentPanel.add(title);
         contentPanel.add(Box.createVerticalStrut(15));
 
+
+        // Address to coordinate
+        JPanel addrPanel = new JPanel();
+        addrPanel.setLayout(new BoxLayout(addrPanel, BoxLayout.Y_AXIS));
+        JLabel addrLabel = new JLabel("Address");
+        addrLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        addrPanel.add(addrLabel);
+        JPanel addrRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
+        addrRow.add(addressField);
+        addrRow.add(geocodeBtn);
+        addrPanel.add(addrRow);
+        geocodeResults.setVisibleRowCount(4);
+        geocodeResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane geoScroll = new JScrollPane(geocodeResults);
+        geoScroll.setPreferredSize(new Dimension(500, 80));
+        addrPanel.add(geoScroll);
+        geocodeStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
+        geocodeStatus.setForeground(new Color(0, 102, 153));
+        addrPanel.add(geocodeStatus);
+        this.add(addrPanel);
+        this.add(Box.createVerticalStrut(10));
 
         JLabel lonLabel = new JLabel("---Longitude---");
         lonLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -84,6 +114,23 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
                 if(e.getSource().equals(searchBtn)) {
                     final FindNearestRouteState curState = viewModel.getState();
                     controller.execute(curState.getPosition());
+                }
+            }
+        });
+
+        geocodeBtn.addActionListener(e -> performGeocode());
+        geocodeResults.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Result r = geocodeResults.getSelectedValue();
+                if (r != null) {
+                    latInputField.setText(String.valueOf(r.getLatitude()));
+                    longInputField.setText(String.valueOf(r.getLongitude()));
+                    // update state
+                    FindNearestRouteState s = viewModel.getState();
+                    s.setLatitude(r.getLatitude());
+                    s.setLongitude(r.getLongitude());
+                    viewModel.setState(s);
+                    errorField.setText("");
                 }
             }
         });
@@ -190,5 +237,37 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
             @Override public void removeUpdate(DocumentEvent e) { callback.accept(field.getText()); }
             @Override public void changedUpdate(DocumentEvent e) { callback.accept(field.getText()); }
         });
+    }
+
+    private void performGeocode() {
+        String q = addressField.getText().trim();
+        if (q.isEmpty()) {
+            geocodeStatus.setText("Enter an address to search.");
+            return;
+        }
+        geocodeBtn.setEnabled(false);
+        geocodeStatus.setText("Searching...");
+        geocodeListModel.clear();
+
+        SwingWorker<java.util.List<Result>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected java.util.List<Result> doInBackground() throws Exception {
+                return geocoder.search(q, 5);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    java.util.List<Result> results = get();
+                    for (Result r : results) geocodeListModel.addElement(r);
+                    geocodeStatus.setText(results.isEmpty() ? "No results found." : "Select a result to use its coordinates.");
+                } catch (Exception ex) {
+                    geocodeStatus.setText("Search failed: " + ex.getMessage());
+                } finally {
+                    geocodeBtn.setEnabled(true);
+                }
+            }
+        };
+        worker.execute();
     }
 }
