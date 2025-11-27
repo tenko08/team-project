@@ -43,79 +43,97 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         this.viewManagerModel = viewManagerModel;
         this.viewModel.addPropertyChangeListener(this);
 
-        this.setLayout(new BorderLayout());
-//        this.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        setLayout(new BorderLayout());
 
+        // === TOP BAR ===
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topBar.add(backButton);
-        this.add(topBar, BorderLayout.NORTH);
+        add(topBar, BorderLayout.NORTH);
 
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        this.add(contentPanel, BorderLayout.CENTER);
+        // content
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        add(content, BorderLayout.CENTER);
 
+        // Title
         JLabel title = new JLabel("Find Nearest Route");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 22f));
-        contentPanel.add(title);
-        contentPanel.add(Box.createVerticalStrut(15));
+        content.add(title);
+        content.add(Box.createVerticalStrut(20));
 
+        // address and coords
+        JPanel row = new JPanel();
+        row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+        row.setAlignmentX(Component.CENTER_ALIGNMENT);
+        content.add(row);
 
-        // Address to coordinate
+        // address panel
         JPanel addrPanel = new JPanel();
         addrPanel.setLayout(new BoxLayout(addrPanel, BoxLayout.Y_AXIS));
-        JLabel addrLabel = new JLabel("Address");
-        addrLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        addrPanel.add(addrLabel);
-        JPanel addrRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
+        addrPanel.setBorder(BorderFactory.createTitledBorder("Address"));
+        row.add(addrPanel);
+
+        JPanel addrRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         addrRow.add(addressField);
         addrRow.add(geocodeBtn);
         addrPanel.add(addrRow);
+
         geocodeResults.setVisibleRowCount(4);
         geocodeResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane geoScroll = new JScrollPane(geocodeResults);
-        geoScroll.setPreferredSize(new Dimension(500, 80));
+        geoScroll.setPreferredSize(new Dimension(350, 80));
         addrPanel.add(geoScroll);
-        geocodeStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         geocodeStatus.setForeground(new Color(0, 102, 153));
         addrPanel.add(geocodeStatus);
-        this.add(addrPanel);
-        this.add(Box.createVerticalStrut(10));
 
-        JLabel lonLabel = new JLabel("---Longitude---");
-        lonLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        contentPanel.add(lonLabel);
-        longInputField.setMaximumSize(new Dimension(300, 30));
-        contentPanel.add(longInputField);
-        contentPanel.add(Box.createVerticalStrut(10));
+        row.add(Box.createHorizontalStrut(15)); // spacing between sections
 
-        JLabel latLabel = new JLabel("---Latitude---");
-        latLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        contentPanel.add(latLabel);
-        latInputField.setMaximumSize(new Dimension(300, 30));
-        contentPanel.add(latInputField);
-        contentPanel.add(Box.createVerticalStrut(10));
+        // coord panel
+        JPanel coordPanel = new JPanel();
+        coordPanel.setLayout(new BoxLayout(coordPanel, BoxLayout.Y_AXIS));
+        coordPanel.setBorder(BorderFactory.createTitledBorder("Coordinates"));
+        row.add(coordPanel);
 
+        // Longitude
+        coordPanel.add(new JLabel("Longitude"));
+//        longInputField.setMaximumSize(new Dimension(300, 28));
+        coordPanel.add(longInputField);
+        coordPanel.add(Box.createVerticalStrut(10));
+
+        // Latitude
+        coordPanel.add(new JLabel("Latitude"));
+//        latInputField.setMaximumSize(new Dimension(300, 28));
+        coordPanel.add(latInputField);
+        coordPanel.add(Box.createVerticalStrut(10));
+
+        // Error label
         errorField.setForeground(Color.RED);
-        errorField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        errorField.setPreferredSize(new Dimension(300, 20));
-        errorField.setMinimumSize(new Dimension(300, 20));
-        errorField.setMaximumSize(new Dimension(300, 20));
-        contentPanel.add(errorField);
-        contentPanel.add(Box.createVerticalStrut(10));
+        errorField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        coordPanel.add(errorField);
+        coordPanel.add(Box.createVerticalStrut(10));
 
+        // Search button
         JButton searchBtn = new JButton("Search");
-        searchBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        contentPanel.add(searchBtn);
-        contentPanel.add(Box.createVerticalStrut(20));
-        searchBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(e.getSource().equals(searchBtn)) {
-                    final FindNearestRouteState curState = viewModel.getState();
-                    controller.execute(curState.getPosition());
-                }
-            }
+        searchBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        coordPanel.add(searchBtn);
+
+        content.add(Box.createVerticalStrut(20));
+
+        // Output area
+        outputArea.setEditable(false);
+        outputArea.setLineWrap(true);
+        outputArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Result"));
+        scrollPane.setPreferredSize(new Dimension(500, 180));
+        content.add(scrollPane);
+
+        searchBtn.addActionListener(e -> {
+            FindNearestRouteState cur = viewModel.getState();
+            controller.execute(cur.getPosition());
         });
 
         geocodeBtn.addActionListener(e -> performGeocode());
@@ -125,49 +143,36 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
                 if (r != null) {
                     latInputField.setText(String.valueOf(r.getLatitude()));
                     longInputField.setText(String.valueOf(r.getLongitude()));
-                    // update state
+
                     FindNearestRouteState s = viewModel.getState();
                     s.setLatitude(r.getLatitude());
                     s.setLongitude(r.getLongitude());
                     viewModel.setState(s);
+
                     errorField.setText("");
                 }
             }
         });
 
-        addDocumentListener(longInputField, value -> {
+        addDocumentListener(longInputField, v -> {
             validateInputs(searchBtn);
-            if (errorField.getText().isEmpty() && !value.isBlank()) {
+            if (errorField.getText().isEmpty() && !v.isBlank()) {
                 FindNearestRouteState s = viewModel.getState();
-                s.setLongitude(Double.parseDouble(value));
+                s.setLongitude(Double.parseDouble(v));
                 viewModel.setState(s);
             }
         });
 
-        addDocumentListener(latInputField, value -> {
+        addDocumentListener(latInputField, v -> {
             validateInputs(searchBtn);
-            if (errorField.getText().isEmpty() && !value.isBlank()) {
+            if (errorField.getText().isEmpty() && !v.isBlank()) {
                 FindNearestRouteState s = viewModel.getState();
-                s.setLatitude(Double.parseDouble(value));
+                s.setLatitude(Double.parseDouble(v));
                 viewModel.setState(s);
             }
         });
-
-        outputArea.setEditable(false);
-        outputArea.setLineWrap(true);
-        outputArea.setWrapStyleWord(true);
-        JScrollPane scrollPane = new JScrollPane(outputArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Result"));
-        contentPanel.add(scrollPane);
-
-//        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-//
-//        this.add(title);
-//        this.add(longInputField);
-//        this.add(latInputField);
-//        this.add(errorField);
-//        this.add(searchBtn);
     }
+
 
     public String getViewName() { return viewName; }
 

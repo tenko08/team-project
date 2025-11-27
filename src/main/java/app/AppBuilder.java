@@ -67,11 +67,11 @@ public class AppBuilder extends JFrame {
     private SearchByRouteController searchByRouteController;
 
     private final String[] themeList = {
-            UIManager.getSystemLookAndFeelClassName(),
+//            UIManager.getSystemLookAndFeelClassName(),
+            "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
             "javax.swing.plaf.metal.MetalLookAndFeel",
             "javax.swing.plaf.nimbus.NimbusLookAndFeel",
             "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
-            "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
             "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"
     };
 
