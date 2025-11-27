@@ -134,13 +134,13 @@ public class AppBuilder extends JFrame {
                 route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
                         new Position(43.800546, -79.334889)));
 
-                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
-                        new Position(43.65386, -79.43306, 164, 0),
-                        "FEW_SEATS_AVAILABLE")));
-
-                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
-                        new Position(43.7322, -79.45838, 253, 0),
-                        "EMPTY")));
+//                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
+//                        new Position(43.65386, -79.43306, 164, 0),
+//                        "FEW_SEATS_AVAILABLE")));
+//
+//                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
+//                        new Position(43.7322, -79.45838, 253, 0),
+//                        "EMPTY")));
 
                 routes.add(route929);
                 return routes;

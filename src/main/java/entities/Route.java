@@ -5,12 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 public class Route {
-    private final int routeNumber;
-    private List<Trip> tripList;
+    private int routeNumber;
+    private List<Bus> busList;
     private List<BusStop> busStopList;
 
+    public Route() {
+        this.busList = new ArrayList<>();
+        this.busStopList = new ArrayList<>();
+        this.routeNumber = routeNumber;
+    }
+
     public Route(int routeNumber) {
-        this.tripList = new ArrayList<Trip>();
+        this.busList = new ArrayList<Bus>();
         this.busStopList = new ArrayList<BusStop>();
         this.routeNumber = routeNumber;
     }
@@ -19,22 +25,25 @@ public class Route {
     public int getRouteNumber() {
         return routeNumber;
     }
-
-    public List<Trip> getTripList() {
-        return tripList;
+    public List<Bus> getBusList() {
+        return busList;
     }
     public List<BusStop> getBusStopList() {
         return busStopList;
     }
 
     // --- Setters ---
-    public void addTrip(Trip trip) {
-        this.tripList.add(trip);
+    public void addBus(Bus bus) {
+        this.busList.add(bus);
     }
+
+    public void addAllBuses(List<Bus> buses) {this.busList = buses;}
 
     public void addBusStop(BusStop busStop) {
         this.busStopList.add(busStop);
     }
+
+    public void setRouteNumber(int routeNumber) {this.routeNumber = routeNumber;};
 
     // --- Utility ---
     public BusStop nearestBusStop(Position position) {
@@ -53,7 +62,7 @@ public class Route {
     public String toString() {
         return "Route{" +
                 "routeNum='" + routeNumber + '\'' +
-                ", tripListSize=" + tripList.size() +
+                ", busListSize=" + busList.size() +
                 ", busListSize='" + busStopList.size() + '\'' +
                 '}';
     }
