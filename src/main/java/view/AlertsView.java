@@ -26,7 +26,7 @@ public class AlertsView extends JPanel {
     private final JToggleButton toggleTableBtn = new JToggleButton("Table View");
     private final JPanel centerCards = new JPanel(new CardLayout());
     private final JButton refreshButton = new JButton("Refresh Alerts");
-    private final JButton backButton = new JButton("Back");
+    private final JButton backButton = new JButton("← Back to Map");
     private final JLabel statusLabel = new JLabel(" ");
 
     public AlertsView(AlertsViewModel viewModel, AlertsController controller, ViewManagerModel viewManagerModel) {

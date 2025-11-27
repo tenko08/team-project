@@ -2,7 +2,10 @@ package view;
 
 import entities.BusStop;
 import entities.Route;
+import interface_adapter.ViewManagerModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
+import api.NominatimGeocodingClient;
+import api.NominatimGeocodingClient.Result;
 import interface_adapter.find_nearest_route.FindNearestRouteState;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 
@@ -18,97 +21,158 @@ import java.beans.PropertyChangeListener;
 public class FindNearestRouteView extends JPanel implements ActionListener, PropertyChangeListener {
     private final String viewName = "FindNearestRouteView";
     private final FindNearestRouteViewModel viewModel;
+    private final ViewManagerModel viewManagerModel;
 
     private final JTextField longInputField = new JTextField(15);
     private final JTextField latInputField = new JTextField(15);
     private final JLabel errorField = new JLabel("");
+    private final JButton backButton = new JButton("← Back to Map");
 
     private final JTextArea outputArea = new JTextArea(6, 25);
     private FindNearestRouteController controller = null;
+    // Geocoding
+    private final JTextField addressField = new JTextField(25);
+    private final JButton geocodeBtn = new JButton("Search address");
+    private final DefaultListModel<Result> geocodeListModel = new DefaultListModel<>();
+    private final JList<Result> geocodeResults = new JList<>(geocodeListModel);
+    private final JLabel geocodeStatus = new JLabel("");
+    private final NominatimGeocodingClient geocoder = new NominatimGeocodingClient();
 
-    public FindNearestRouteView(FindNearestRouteViewModel viewModel) {
+    public FindNearestRouteView(ViewManagerModel viewManagerModel, FindNearestRouteViewModel viewModel) {
         this.viewModel = viewModel;
+        this.viewManagerModel = viewManagerModel;
         this.viewModel.addPropertyChangeListener(this);
 
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        setLayout(new BorderLayout());
 
+        // === TOP BAR ===
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topBar.add(backButton);
+        add(topBar, BorderLayout.NORTH);
+
+        // content
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        add(content, BorderLayout.CENTER);
+
+        // Title
         JLabel title = new JLabel("Find Nearest Route");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 22f));
-        this.add(title);
-        this.add(Box.createVerticalStrut(15));
+        content.add(title);
+        content.add(Box.createVerticalStrut(20));
 
+        // address and coords
+        JPanel row = new JPanel();
+        row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+        row.setAlignmentX(Component.CENTER_ALIGNMENT);
+        content.add(row);
 
-        JLabel lonLabel = new JLabel("---Longitude---");
-        lonLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(lonLabel);
-        longInputField.setMaximumSize(new Dimension(300, 30));
-        this.add(longInputField);
-        this.add(Box.createVerticalStrut(10));
+        // address panel
+        JPanel addrPanel = new JPanel();
+        addrPanel.setLayout(new BoxLayout(addrPanel, BoxLayout.Y_AXIS));
+        addrPanel.setBorder(BorderFactory.createTitledBorder("Address"));
+        row.add(addrPanel);
 
-        JLabel latLabel = new JLabel("---Latitude---");
-        latLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(latLabel);
-        latInputField.setMaximumSize(new Dimension(300, 30));
-        this.add(latInputField);
-        this.add(Box.createVerticalStrut(10));
+        JPanel addrRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        addrRow.add(addressField);
+        addrRow.add(geocodeBtn);
+        addrPanel.add(addrRow);
 
+        geocodeResults.setVisibleRowCount(4);
+        geocodeResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane geoScroll = new JScrollPane(geocodeResults);
+        geoScroll.setPreferredSize(new Dimension(350, 80));
+        addrPanel.add(geoScroll);
+
+        geocodeStatus.setForeground(new Color(0, 102, 153));
+        addrPanel.add(geocodeStatus);
+
+        row.add(Box.createHorizontalStrut(15)); // spacing between sections
+
+        // coord panel
+        JPanel coordPanel = new JPanel();
+        coordPanel.setLayout(new BoxLayout(coordPanel, BoxLayout.Y_AXIS));
+        coordPanel.setBorder(BorderFactory.createTitledBorder("Coordinates"));
+        row.add(coordPanel);
+
+        // Longitude
+        coordPanel.add(new JLabel("Longitude"));
+//        longInputField.setMaximumSize(new Dimension(300, 28));
+        coordPanel.add(longInputField);
+        coordPanel.add(Box.createVerticalStrut(10));
+
+        // Latitude
+        coordPanel.add(new JLabel("Latitude"));
+//        latInputField.setMaximumSize(new Dimension(300, 28));
+        coordPanel.add(latInputField);
+        coordPanel.add(Box.createVerticalStrut(10));
+
+        // Error label
         errorField.setForeground(Color.RED);
-        errorField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        errorField.setPreferredSize(new Dimension(300, 20));
-        errorField.setMinimumSize(new Dimension(300, 20));
-        errorField.setMaximumSize(new Dimension(300, 20));
-        this.add(errorField);
-        this.add(Box.createVerticalStrut(10));
+        errorField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        coordPanel.add(errorField);
+        coordPanel.add(Box.createVerticalStrut(10));
 
+        // Search button
         JButton searchBtn = new JButton("Search");
-        searchBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(searchBtn);
-        this.add(Box.createVerticalStrut(20));
-        searchBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(e.getSource().equals(searchBtn)) {
-                    final FindNearestRouteState curState = viewModel.getState();
-                    controller.execute(curState.getPosition());
-                }
-            }
-        });
+        searchBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        coordPanel.add(searchBtn);
 
-        addDocumentListener(longInputField, value -> {
-            validateInputs(searchBtn);
-            if (errorField.getText().isEmpty() && !value.isBlank()) {
-                FindNearestRouteState s = viewModel.getState();
-                s.setLongitude(Double.parseDouble(value));
-                viewModel.setState(s);
-            }
-        });
+        content.add(Box.createVerticalStrut(20));
 
-        addDocumentListener(latInputField, value -> {
-            validateInputs(searchBtn);
-            if (errorField.getText().isEmpty() && !value.isBlank()) {
-                FindNearestRouteState s = viewModel.getState();
-                s.setLatitude(Double.parseDouble(value));
-                viewModel.setState(s);
-            }
-        });
-
+        // Output area
         outputArea.setEditable(false);
         outputArea.setLineWrap(true);
         outputArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(outputArea);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Result"));
-        this.add(scrollPane);
+        scrollPane.setPreferredSize(new Dimension(500, 180));
+        content.add(scrollPane);
 
-//        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-//
-//        this.add(title);
-//        this.add(longInputField);
-//        this.add(latInputField);
-//        this.add(errorField);
-//        this.add(searchBtn);
+        searchBtn.addActionListener(e -> {
+            FindNearestRouteState cur = viewModel.getState();
+            controller.execute(cur.getPosition());
+        });
+
+        geocodeBtn.addActionListener(e -> performGeocode());
+        geocodeResults.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Result r = geocodeResults.getSelectedValue();
+                if (r != null) {
+                    latInputField.setText(String.valueOf(r.getLatitude()));
+                    longInputField.setText(String.valueOf(r.getLongitude()));
+
+                    FindNearestRouteState s = viewModel.getState();
+                    s.setLatitude(r.getLatitude());
+                    s.setLongitude(r.getLongitude());
+                    viewModel.setState(s);
+
+                    errorField.setText("");
+                }
+            }
+        });
+
+        addDocumentListener(longInputField, v -> {
+            validateInputs(searchBtn);
+            if (errorField.getText().isEmpty() && !v.isBlank()) {
+                FindNearestRouteState s = viewModel.getState();
+                s.setLongitude(Double.parseDouble(v));
+                viewModel.setState(s);
+            }
+        });
+
+        addDocumentListener(latInputField, v -> {
+            validateInputs(searchBtn);
+            if (errorField.getText().isEmpty() && !v.isBlank()) {
+                FindNearestRouteState s = viewModel.getState();
+                s.setLatitude(Double.parseDouble(v));
+                viewModel.setState(s);
+            }
+        });
     }
+
 
     public String getViewName() { return viewName; }
 
@@ -178,5 +242,37 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
             @Override public void removeUpdate(DocumentEvent e) { callback.accept(field.getText()); }
             @Override public void changedUpdate(DocumentEvent e) { callback.accept(field.getText()); }
         });
+    }
+
+    private void performGeocode() {
+        String q = addressField.getText().trim();
+        if (q.isEmpty()) {
+            geocodeStatus.setText("Enter an address to search.");
+            return;
+        }
+        geocodeBtn.setEnabled(false);
+        geocodeStatus.setText("Searching...");
+        geocodeListModel.clear();
+
+        SwingWorker<java.util.List<Result>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected java.util.List<Result> doInBackground() throws Exception {
+                return geocoder.search(q, 5);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    java.util.List<Result> results = get();
+                    for (Result r : results) geocodeListModel.addElement(r);
+                    geocodeStatus.setText(results.isEmpty() ? "No results found." : "Select a result to use its coordinates.");
+                } catch (Exception ex) {
+                    geocodeStatus.setText("Search failed: " + ex.getMessage());
+                } finally {
+                    geocodeBtn.setEnabled(true);
+                }
+            }
+        };
+        worker.execute();
     }
 }
