@@ -219,7 +219,7 @@ public class AppBuilder extends JFrame {
             // Ensure use case is initialized before view
             addOccupancyUseCase();
         }
-        occupancyView = new OccupancyView(occupancyViewModel);
+        occupancyView = new OccupancyView(occupancyViewModel, viewManagerModel);
         occupancyView.setController(occupancyController);
         cardPanel.add(occupancyView, occupancyView.getViewName());
         return this;

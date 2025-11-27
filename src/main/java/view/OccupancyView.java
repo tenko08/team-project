@@ -3,6 +3,7 @@ package view;
 import interface_adapter.occupancy.OccupancyController;
 import interface_adapter.occupancy.OccupancyState;
 import interface_adapter.occupancy.OccupancyViewModel;
+import interface_adapter.ViewManagerModel;
 import entities.Route;
 
 import javax.swing.*;
@@ -14,24 +15,45 @@ import java.util.Map;
 public class OccupancyView extends JPanel implements PropertyChangeListener {
     public final String viewName = "occupancy";
     private final OccupancyViewModel occupancyViewModel;
+    private final ViewManagerModel viewManagerModel;
     private final DefaultListModel<String> listModel;
     private final JList<String> occupancyList;
     private final JTextField routeInputField;
     private final JLabel routeLabel;
     private final JButton loadButton;
+    private final JButton backButton;
     private OccupancyController controller;
 
-    public OccupancyView(OccupancyViewModel occupancyViewModel) {
+    public OccupancyView(OccupancyViewModel occupancyViewModel, ViewManagerModel viewManagerModel) {
         this.occupancyViewModel = occupancyViewModel;
+        this.viewManagerModel = viewManagerModel;
         this.occupancyViewModel.addPropertyChangeListener(this);
 
         setLayout(new BorderLayout());
 
+        // Top bar with back button
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        backButton = new JButton("← Back to Map");
+        backButton.addActionListener(e -> {
+            viewManagerModel.setState("map");
+            viewManagerModel.firePropertyChange();
+        });
+        topBar.add(backButton);
+        add(topBar, BorderLayout.NORTH);
+
+        // Main panel to hold content
+        JPanel mainPanel = new JPanel(new BorderLayout());
+
+        // Header panel for Title and Input
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
         // Title
         JLabel title = new JLabel("Bus Occupancy");
-        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setFont(new Font("Arial", Font.BOLD, 16));
-        add(title, BorderLayout.NORTH);
+        headerPanel.add(title);
+        headerPanel.add(Box.createVerticalStrut(10));
 
         // Top panel with route input
         JPanel topPanel = new JPanel(new FlowLayout());
@@ -43,19 +65,23 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
         topPanel.add(loadButton);
 
         routeLabel = new JLabel("No route selected");
+        routeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         routeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         routeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        JPanel inputPanel = new JPanel(new BorderLayout());
-        inputPanel.add(topPanel, BorderLayout.CENTER);
-        inputPanel.add(routeLabel, BorderLayout.SOUTH);
-        add(inputPanel, BorderLayout.NORTH);
+        headerPanel.add(topPanel);
+        headerPanel.add(routeLabel);
+        headerPanel.add(Box.createVerticalStrut(10));
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Occupancy list
         listModel = new DefaultListModel<>();
         occupancyList = new JList<>(listModel);
         occupancyList.setFont(new Font("Arial", Font.PLAIN, 14));
-        add(new JScrollPane(occupancyList), BorderLayout.CENTER);
+        mainPanel.add(new JScrollPane(occupancyList), BorderLayout.CENTER);
+
+        add(mainPanel, BorderLayout.CENTER);
 
         // Add action listener for load button
         loadButton.addActionListener(e -> {
