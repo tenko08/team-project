@@ -34,13 +34,21 @@ public class Route {
 
     // --- Setters ---
     public void addBus(Bus bus) {
-        this.busList.add(bus);
+        if(bus != null) {
+            this.busList.add(bus);
+        }
     }
 
-    public void addAllBuses(List<Bus> buses) {this.busList = buses;}
+    public void addAllBuses(List<Bus> buses) {
+        if(buses != null) {
+            this.busList = buses;
+        }
+    }
 
     public void addBusStop(BusStop busStop) {
-        this.busStopList.add(busStop);
+        if(busStop != null) {
+            this.busStopList.add(busStop);
+        }
     }
 
     public void setRouteNumber(int routeNumber) {this.routeNumber = routeNumber;};
@@ -63,7 +71,7 @@ public class Route {
         return "Route{" +
                 "routeNum='" + routeNumber + '\'' +
                 ", busListSize=" + busList.size() +
-                ", busListSize='" + busStopList.size() + '\'' +
+                ", busStopListSize='" + busStopList.size() + '\'' +
                 '}';
     }
 

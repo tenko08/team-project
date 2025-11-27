@@ -2,6 +2,7 @@ package app;
 
 import api.AlertDataBaseAPI;
 import api.BusDataBaseAPI;
+import data_access.BusDataAccessObject;
 import data_access.CacheAccessObject;
 import entities.*;
 import interface_adapter.ViewManagerModel;
@@ -51,6 +52,7 @@ public class AppBuilder extends JFrame {
 
     // DAO using file cache
     final CacheAccessObject cacheAccessObject = new CacheAccessObject();
+    final BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
 
     // For other views: declare view and view model, then implement methods to add view and use case interactor
     private MapView mapView;
@@ -126,26 +128,29 @@ public class AppBuilder extends JFrame {
                 = new FindNearestRoutePresenter(findNearestRouteViewModel);
         // TODO: use DAO, this is tempdata
         final FindNearestRouteInputBoundary findNearestRouteInteractor
-                = new FindNearestRouteInteractor(new FindNearestRouteDataAccessInterface() {
-            @Override
-            public List<Route> getAllRoutes() {
-                List<Route> routes = new ArrayList<Route>();
-                Route route929 = new Route(929);
-                route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
-                        new Position(43.800546, -79.334889)));
-
-//                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
-//                        new Position(43.65386, -79.43306, 164, 0),
-//                        "FEW_SEATS_AVAILABLE")));
+                = new FindNearestRouteInteractor(
+                busDataAccessObject
+//                        new FindNearestRouteDataAccessInterface() {
+//            @Override
+//            public List<Route> getAllRoutes() {
+//                List<Route> routes = new ArrayList<Route>();
+//                Route route929 = new Route(929);
+//                route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
+//                        new Position(43.800546, -79.334889)));
 //
-//                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
-//                        new Position(43.7322, -79.45838, 253, 0),
-//                        "EMPTY")));
-
-                routes.add(route929);
-                return routes;
-            }
-        }, findNearestRouteOutputBoundary);
+////                route929.addTrip(new Trip(72598070, route929, new Bus(9446,
+////                        new Position(43.65386, -79.43306, 164, 0),
+////                        "FEW_SEATS_AVAILABLE")));
+////
+////                route929.addTrip(new Trip(76422070, route929, new Bus(9432,
+////                        new Position(43.7322, -79.45838, 253, 0),
+////                        "EMPTY")));
+//
+//                routes.add(route929);
+//                return routes;
+//            }
+//        }
+        , findNearestRouteOutputBoundary);
 
         FindNearestRouteController findNearestRouteController
                 = new FindNearestRouteController(findNearestRouteInteractor);

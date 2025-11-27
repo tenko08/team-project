@@ -48,7 +48,11 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         // === TOP BAR ===
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topBar.add(backButton);
-        add(topBar, BorderLayout.NORTH);
+        backButton.addActionListener(e -> {
+            viewManagerModel.setState("map");
+            viewManagerModel.firePropertyChange();
+        });
+        this.add(topBar, BorderLayout.NORTH);
 
         // content
         JPanel content = new JPanel();
@@ -97,16 +101,16 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         coordPanel.setBorder(BorderFactory.createTitledBorder("Coordinates"));
         row.add(coordPanel);
 
-        // Longitude
-        coordPanel.add(new JLabel("Longitude"));
-//        longInputField.setMaximumSize(new Dimension(300, 28));
-        coordPanel.add(longInputField);
-        coordPanel.add(Box.createVerticalStrut(10));
-
         // Latitude
         coordPanel.add(new JLabel("Latitude"));
 //        latInputField.setMaximumSize(new Dimension(300, 28));
         coordPanel.add(latInputField);
+        coordPanel.add(Box.createVerticalStrut(10));
+
+        // Longitude
+        coordPanel.add(new JLabel("Longitude"));
+//        longInputField.setMaximumSize(new Dimension(300, 28));
+        coordPanel.add(longInputField);
         coordPanel.add(Box.createVerticalStrut(10));
 
         // Error label

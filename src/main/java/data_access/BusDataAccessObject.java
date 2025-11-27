@@ -45,6 +45,7 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
             allBuses = getAllBuses();
         } catch (IOException | CsvException e) {
             e.printStackTrace();
+            System.out.println("here2");
             return routes;
         }
 
@@ -76,15 +77,17 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
                     }
                 // Adds the route to the routes array list
                 routes.add(route);
+//                if(!route.getBusStopList().isEmpty())
+//                    System.out.println(route);
 
-                }
-
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return List.of();
+//        System.out.println("here1 " + routes.size());
+        return routes;
 
     }
 
@@ -183,12 +186,12 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 
     public static void main(String[] args) throws IOException, CsvException {
         BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
-        List<String> routeIds = busDataAccessObject.getAllRouteIds();
-        System.out.println(routeIds);
-        HashMap<Integer, BusStop> busStopList = busDataAccessObject.getAllBusStops();
-        System.out.println(busStopList);
+//        List<String> routeIds = busDataAccessObject.getAllRouteIds();
+//        System.out.println(routeIds);
+//        HashMap<Integer, BusStop> busStopList = busDataAccessObject.getAllBusStops();
+//        System.out.println(busStopList);
         List<Route> allRoutes = busDataAccessObject.getAllRoutes();
-        System.out.println(allRoutes);
+//        System.out.println(allRoutes);
     }
 
 
