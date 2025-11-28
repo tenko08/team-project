@@ -25,7 +25,7 @@ import java.util.List;
 public class BusDataAccessObject implements FindNearestRouteDataAccessInterface {
     private static final String API_URL_VEHICLES = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
-    private static final String API_URL_TRIPS = "https://bustime.ttc.ca/gtfsrt/trips";
+        private static final String API_URL_TRIPS = "https://bustime.ttc.ca/gtfsrt/trips";
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -63,9 +63,11 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 
                 if (entity.hasTripUpdate()) {
                     GtfsRealtime.TripUpdate tripUpdate = entity.getTripUpdate();
-                    String routeId = tripUpdate.getTrip().getTripId();
+                    String routeId = tripUpdate.getTrip().getRouteId();
                     route.setRouteNumber(Integer.parseInt(routeId));
-                    route.addAllBuses(allBuses.get(Integer.parseInt(routeId)));
+
+                    List<Bus> buses = allBuses.get(Integer.parseInt(routeId));
+                    route.addAllBuses(buses);
 
                     for (GtfsRealtime.TripUpdate.StopTimeUpdate stu : tripUpdate.getStopTimeUpdateList()) {
                         String stopId = stu.getStopId();
@@ -191,7 +193,9 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 //        HashMap<Integer, BusStop> busStopList = busDataAccessObject.getAllBusStops();
 //        System.out.println(busStopList);
         List<Route> allRoutes = busDataAccessObject.getAllRoutes();
-//        System.out.println(allRoutes);
+        System.out.println(allRoutes);
+//        HashMap<Integer, List<Bus>> allBuses = busDataAccessObject.getAllBuses();
+//        System.out.println(allBuses);
     }
 
 
