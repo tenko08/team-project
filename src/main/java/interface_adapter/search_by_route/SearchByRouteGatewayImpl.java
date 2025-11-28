@@ -1,18 +1,20 @@
 package interface_adapter.search_by_route;
 
 import api.BusDataBaseAPI;
+import data_access.BusDataAccessObject;
+
 import java.util.Map;
 
 public class SearchByRouteGatewayImpl implements SearchByRouteGateway {
-    private final BusDataBaseAPI busDataBaseAPI;
+    private final BusDataAccessObject busDataAccessObject;
 
-    public SearchByRouteGatewayImpl(BusDataBaseAPI busDataBaseAPI) {
-        this.busDataBaseAPI = busDataBaseAPI;
+    public SearchByRouteGatewayImpl(BusDataAccessObject busDataAccessObject) {
+        this.busDataAccessObject = busDataAccessObject;
     }
 
     @Override
     public Map<String, Object> getBusesByRoute(String routeNumber) {
-        return busDataBaseAPI.getBusesByRoute(routeNumber);
+        return busDataAccessObject.getBusesByRoute(routeNumber);
     }
 }
 

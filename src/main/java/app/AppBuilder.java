@@ -178,7 +178,7 @@ public class AppBuilder extends JFrame {
 
     public AppBuilder addSearchByRouteUseCase() {
         searchByRouteViewModel = new SearchByRouteViewModel();
-        SearchByRouteGateway gateway = new SearchByRouteGatewayImpl(new BusDataBaseAPI());
+        SearchByRouteGateway gateway = new SearchByRouteGatewayImpl(new BusDataAccessObject());
         SearchByRoutePresenter presenter = new SearchByRoutePresenter(searchByRouteViewModel);
         SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
         searchByRouteController = new SearchByRouteController(interactor);
