@@ -11,21 +11,24 @@ import okhttp3.Request;
 import okhttp3.Response;
 import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import com.opencsv.CSVReader;
+import use_case.map.MapDataAccessInterface;
+import use_case.search_by_route.SearchByRouteDataAccessInterface;
+
 import java.io.FileReader;
 import java.util.List;
 
 
-public class BusDataAccessObject implements FindNearestRouteDataAccessInterface {
+public class BusDataAccessObject implements FindNearestRouteDataAccessInterface, SearchByRouteDataAccessInterface, MapDataAccessInterface {
     private static final String API_URL_VEHICLES = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
-    private static final String API_URL_TRIPS = "https://bustime.ttc.ca/gtfsrt/trips";
+        private static final String API_URL_TRIPS = "https://bustime.ttc.ca/gtfsrt/trips";
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -33,6 +36,162 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 
     private final Request requestTrips = new Request.Builder().url(API_URL_TRIPS).build();
 
+    @Override
+    public File getCacheDir() {
+        // Return cache directory similar to CacheAccessObject
+        return new File(System.getProperty("user.home") + File.separator + ".jxmapviewer2");
+    }
+
+    @Override
+    public List<Bus> getAllBuses() {
+        final OkHttpClient client = new OkHttpClient();
+
+
+        List<Bus> buses = new ArrayList<>();
+
+        try {
+
+            final Response response = client.newCall(requestVehicles).execute();
+            final byte[] bytes = response.body().bytes();
+
+            GtfsRealtime.FeedMessage feed =
+                    GtfsRealtime.FeedMessage.parseFrom(bytes);
+
+//            System.out.println(feed);
+
+            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
+                System.out.println(entity);
+                int vehicleId = -1;
+                Position position = null;
+                String occupancy = "UNKNOWN";
+
+                if (entity.hasVehicle()) {
+                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
+
+                    if (vp.hasVehicle() && vp.getVehicle().hasId()) {
+                        vehicleId = Integer.parseInt(vp.getVehicle().getId());
+                    }
+
+                    if (vp.hasVehicle() && vp.hasPosition()) {
+                        position = new Position(vp.getPosition().getLatitude(), vp.getPosition().getLongitude(), vp.getPosition().getBearing(),
+                                vp.getPosition().getSpeed());
+
+                    }
+
+                    if (vp.hasVehicle() && vp.hasOccupancyStatus()) {
+                        occupancy = String.valueOf(vp.getOccupancyStatus());
+                    }
+
+                }
+                Bus bus = new Bus(vehicleId, position, occupancy);
+                buses.add(bus);
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(buses);
+        return buses;
+
+    }
+
+    @Override
+    public Map<String, Object> getBusesByRoute(String routeNumber) {
+        Map<String, Object> result = new HashMap<>();
+        List<Bus> buses = new ArrayList<>();
+        Route route = null;
+
+        try {
+            final Response response = client.newCall(requestVehicles).execute();
+            final byte[] bytes = response.body().bytes();
+
+            GtfsRealtime.FeedMessage feed = GtfsRealtime.FeedMessage.parseFrom(bytes);
+
+            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
+//                System.out.println(entity);
+                if (entity.hasVehicle()) {
+                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
+
+                    // Extract route ID from trip descriptor
+                    String routeId = null;
+                    if (vp.hasTrip() && vp.getTrip().hasRouteId()) {
+                        routeId = vp.getTrip().getRouteId();
+                    }
+
+                    // Only process buses matching the requested route
+                    if (routeId != null && routeId.equals(routeNumber)) {
+                        // Create route object if not already created
+                        if (route == null) {
+                            try {
+                                int routeNum = Integer.parseInt(routeNumber);
+                                route = new Route(routeNum);
+                            } catch (NumberFormatException e) {
+                                // If route number can't be parsed as int, use 0 as default
+                                route = new Route(0);
+                            }
+                        }
+
+                        int vehicleId = -1;
+                        Position position = null;
+                        String occupancy = "UNKNOWN";
+
+                        if (vp.hasVehicle() && vp.getVehicle().hasId()) {
+                            vehicleId = Integer.parseInt(vp.getVehicle().getId());
+                        }
+
+                        if (vp.hasPosition()) {
+                            position = new Position(
+                                    vp.getPosition().getLatitude(),
+                                    vp.getPosition().getLongitude(),
+                                    vp.getPosition().getBearing(),
+                                    vp.getPosition().getSpeed()
+                            );
+                        }
+
+                        if (vp.hasOccupancyStatus()) {
+                            occupancy = String.valueOf(vp.getOccupancyStatus());
+                        }
+
+                        // Get direction from trip
+//                        String direction = null;
+//                        if (vp.hasTrip() && vp.getTrip().hasDirectionId()) {
+//                            direction = vp.getTrip().getDirectionId() == 0 ? "Outbound" : "Inbound";
+//                        }
+
+                        // Create Bus entity with direction
+                        Bus bus = new Bus(vehicleId, position, occupancy);
+                        buses.add(bus);
+                    }
+                }
+            }
+
+            // Cache the result
+            Map<String, Object> routeData = new HashMap<>();
+            routeData.put("route", route);
+            routeData.put("buses", buses);
+            routeData.put("routeNumber", routeNumber);
+            routeData.put("lastUpdated", new SimpleDateFormat("HH:mm:ss").format(new Date()));
+
+            if (buses.isEmpty() || route == null) {
+                result.put("success", false);
+                result.put("message", "Route not found");
+            } else {
+                result.put("success", true);
+                result.put("route", route);
+                result.put("buses", buses);
+                result.put("routeNumber", routeNumber);
+                result.put("cached", false);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
     @Override
     public List<Route> getAllRoutes() {
         List<Route> routes = new ArrayList<>();
@@ -42,7 +201,7 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 
         try {
             allBusStops = getAllBusStops();
-            allBuses = getAllBuses();
+            allBuses = getAllBusesMap();
         } catch (IOException | CsvException e) {
             e.printStackTrace();
             System.out.println("here2");
@@ -63,9 +222,11 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 
                 if (entity.hasTripUpdate()) {
                     GtfsRealtime.TripUpdate tripUpdate = entity.getTripUpdate();
-                    String routeId = tripUpdate.getTrip().getTripId();
+                    String routeId = tripUpdate.getTrip().getRouteId();
                     route.setRouteNumber(Integer.parseInt(routeId));
-                    route.addAllBuses(allBuses.get(Integer.parseInt(routeId)));
+
+                    List<Bus> buses = allBuses.get(Integer.parseInt(routeId));
+                    route.addAllBuses(buses);
 
                     for (GtfsRealtime.TripUpdate.StopTimeUpdate stu : tripUpdate.getStopTimeUpdateList()) {
                         String stopId = stu.getStopId();
@@ -127,7 +288,7 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
     }
 
     // Returns a hashmap mapping the routeId to a list of Bus Objects for better lookup
-    private HashMap<Integer, List<Bus>> getAllBuses() {
+    private HashMap<Integer, List<Bus>> getAllBusesMap() {
         HashMap<Integer, List<Bus>> busList = new HashMap<>();
 
         try {
@@ -191,7 +352,9 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface 
 //        HashMap<Integer, BusStop> busStopList = busDataAccessObject.getAllBusStops();
 //        System.out.println(busStopList);
         List<Route> allRoutes = busDataAccessObject.getAllRoutes();
-//        System.out.println(allRoutes);
+        System.out.println(allRoutes);
+//        HashMap<Integer, List<Bus>> allBuses = busDataAccessObject.getAllBuses();
+//        System.out.println(allBuses);
     }
 
 
