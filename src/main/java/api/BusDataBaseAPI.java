@@ -21,7 +21,6 @@ import okhttp3.Response;
 
 public class BusDataBaseAPI implements BusDataBase {
     private Map<String, Object> cachedData = new HashMap<>();
-
     private static final String API_URL = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
     @Override

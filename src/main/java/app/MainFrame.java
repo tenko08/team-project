@@ -27,6 +27,8 @@ public class MainFrame {
                     .addAlertsView()
                     .addSearchByRouteUseCase()
                     .addSearchByRouteView()
+                    .addBusScheduleUseCase()
+                    .addBusScheduleView()
                     .addOccupancyUseCase()
                     .addOccupancyView()
                     .build();

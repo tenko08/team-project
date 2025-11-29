@@ -42,6 +42,15 @@ import view.MapView;
 import view.OccupancyView;
 import view.SearchByRouteView;
 import view.ViewManager;
+import interface_adapter.bus_schedule_eta.BusScheduleController;
+import interface_adapter.bus_schedule_eta.BusScheduleGateway;
+import interface_adapter.bus_schedule_eta.BusScheduleGatewayImpl;
+import interface_adapter.bus_schedule_eta.BusSchedulePresenter;
+import interface_adapter.bus_schedule_eta.BusScheduleViewModel;
+import use_case.bus_schedule_eta.BusScheduleInputBoundary;
+import use_case.bus_schedule_eta.BusScheduleInteractor;
+import use_case.bus_schedule_eta.BusScheduleOutputBoundary;
+import view.BusScheduleView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,6 +85,9 @@ public class AppBuilder extends JFrame {
     private SearchByRouteViewModel searchByRouteViewModel;
     private SearchByRouteController searchByRouteController;
 
+    private BusScheduleView busScheduleView;
+    private BusScheduleViewModel busScheduleViewModel;
+    private BusScheduleController busScheduleController;
     private OccupancyView occupancyView;
     private OccupancyViewModel occupancyViewModel;
     private OccupancyController occupancyController;
@@ -142,6 +154,10 @@ public class AppBuilder extends JFrame {
         // TODO: use DAO, this is tempdata
         final FindNearestRouteInputBoundary findNearestRouteInteractor = new FindNearestRouteInteractor(
                 busDataAccessObject
+        , findNearestRouteOutputBoundary);
+
+        FindNearestRouteController findNearestRouteController
+                = new FindNearestRouteController(findNearestRouteInteractor);
                 // new FindNearestRouteDataAccessInterface() {
                 // @Override
                 // public List<Route> getAllRoutes() {
@@ -206,6 +222,21 @@ public class AppBuilder extends JFrame {
         return this;
     }
 
+    public AppBuilder addBusScheduleUseCase() {
+        busScheduleViewModel = new BusScheduleViewModel();
+        BusScheduleGateway busScheduleGateway = new BusScheduleGatewayImpl(new BusDataBaseAPI());
+        final BusScheduleOutputBoundary presenter = new BusSchedulePresenter(busScheduleViewModel);
+        final BusScheduleInputBoundary interactor = new BusScheduleInteractor(busScheduleGateway, presenter);
+        busScheduleController = new BusScheduleController(interactor);
+        return this;
+    }
+
+    public AppBuilder addBusScheduleView() {
+        if (busScheduleController == null || busScheduleViewModel == null) {
+            addBusScheduleUseCase();
+        }
+        busScheduleView = new BusScheduleView(busScheduleController, busScheduleViewModel);
+        cardPanel.add(busScheduleView, busScheduleView.getViewName());
     public AppBuilder addOccupancyUseCase() {
         occupancyViewModel = new OccupancyViewModel();
         final OccupancyOutputBoundary presenter = new OccupancyPresenter(occupancyViewModel);
@@ -273,6 +304,11 @@ public class AppBuilder extends JFrame {
             }
         });
 
+        JButton searchBusETABtn = new JButton("Search Bus ETA");
+        searchBusETABtn.addActionListener(e -> {
+            System.out.println("Search Bus ETA button clicked");
+             viewManagerModel.setState(busScheduleView.getViewName());
+             viewManagerModel.firePropertyChange();
         JButton occupancyBtn = new JButton("Occupancy");
         occupancyBtn.addActionListener(e -> {
             if (occupancyView != null) {
@@ -284,6 +320,7 @@ public class AppBuilder extends JFrame {
         toolBar.add(alertsBtn);
         toolBar.add(findNearestRouteBtn);
         toolBar.add(searchByRouteBtn);
+        toolBar.add(searchBusETABtn);
         toolBar.add(occupancyBtn);
 
         toolBar.add(Box.createHorizontalGlue());
