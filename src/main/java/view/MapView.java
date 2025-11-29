@@ -1,7 +1,11 @@
 package view;
 
-import interface_adapter.map.MapViewModel;
-import interface_adapter.map.SelectionAdapter;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.JPanel;
+import javax.swing.event.MouseInputListener;
+
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.input.CenterMapListener;
 import org.jxmapviewer.input.PanKeyListener;
@@ -10,9 +14,8 @@ import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 
-import javax.swing.*;
-import javax.swing.event.MouseInputListener;
-import java.awt.*;
+import interface_adapter.map.MapViewModel;
+import interface_adapter.map.SelectionAdapter;
 
 public class MapView extends JPanel {
     private final String viewName = "map";

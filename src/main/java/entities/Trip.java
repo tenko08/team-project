@@ -5,7 +5,7 @@ public class Trip {
     private Route route;
     private Bus bus;
 
-    public  Trip(int id, Route route,  Bus bus) {
+    public Trip(int id, Route route, Bus bus) {
         this.id = id;
         this.route = route;
         this.bus = bus;
@@ -17,5 +17,9 @@ public class Trip {
 
     public int getRouteNumber() {
         return route.getRouteNumber();
+    }
+
+    public Bus getBus() {
+        return bus;
     }
 }
