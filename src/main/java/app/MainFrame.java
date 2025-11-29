@@ -22,6 +22,8 @@ public class MainFrame {
                     .addAlertsView()
                     .addSearchByRouteUseCase()
                     .addSearchByRouteView()
+                    .addBusScheduleUseCase()
+                    .addBusScheduleView()
                     .build();
             app.setMinimumSize(new java.awt.Dimension(300, 200));
             app.pack();
