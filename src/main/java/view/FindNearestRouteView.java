@@ -271,7 +271,21 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
                     for (Result r : results) geocodeListModel.addElement(r);
                     geocodeStatus.setText(results.isEmpty() ? "No results found." : "Select a result to use its coordinates.");
                 } catch (Exception ex) {
-                    geocodeStatus.setText("Search failed: " + ex.getMessage());
+                    // Unwrap root cause for clearer messaging
+                    Throwable cause = ex;
+                    if (ex.getCause() != null) {
+                        cause = ex.getCause();
+                        while (cause.getCause() != null) cause = cause.getCause();
+                    }
+                    String msg;
+                    if (cause instanceof java.net.SocketTimeoutException) {
+                        msg = "Address search timed out. Please check your internet connection and try again.";
+                    } else if (cause instanceof java.io.IOException) {
+                        msg = cause.getMessage() != null ? cause.getMessage() : "Network error during address search.";
+                    } else {
+                        msg = "Unexpected error during address search.";
+                    }
+                    geocodeStatus.setText(msg);
                 } finally {
                     geocodeBtn.setEnabled(true);
                 }
