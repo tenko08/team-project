@@ -1,23 +1,23 @@
 package api;
 
-import entities.Bus;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import com.google.transit.realtime.GtfsRealtime;
+
+import entities.Bus;
 import entities.Position;
 import entities.Route;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class BusDataBaseAPI implements BusDataBase {
     private Map<String, Object> cachedData = new HashMap<>();
@@ -250,16 +250,124 @@ public class BusDataBaseAPI implements BusDataBase {
         return result;
     }
 
+    public Map<String, Object> getBusesByRoute(String routeNumber) {
+        Map<String, Object> result = new HashMap<>();
+        final OkHttpClient client = new OkHttpClient();
+        final Request request = new Request.Builder().url(API_URL).build();
+
+        List<Bus> buses = new ArrayList<>();
+        Route route = null;
+
+        try {
+            final Response response = client.newCall(request).execute();
+            final byte[] bytes = response.body().bytes();
+
+            GtfsRealtime.FeedMessage feed = GtfsRealtime.FeedMessage.parseFrom(bytes);
+
+            for (GtfsRealtime.FeedEntity entity : feed.getEntityList()) {
+                // System.out.println(entity);
+                if (entity.hasVehicle()) {
+                    GtfsRealtime.VehiclePosition vp = entity.getVehicle();
+
+                    // Extract route ID from trip descriptor
+                    String routeId = null;
+                    if (vp.hasTrip() && vp.getTrip().hasRouteId()) {
+                        routeId = vp.getTrip().getRouteId();
+                    }
+
+                    // Only process buses matching the requested route
+                    if (routeId != null && routeId.equals(routeNumber)) {
+                        // Create route object if not already created
+                        if (route == null) {
+                            try {
+                                int routeNum = Integer.parseInt(routeNumber);
+                                route = new Route(routeNum);
+                            } catch (NumberFormatException e) {
+                                // If route number can't be parsed as int, use 0 as default
+                                route = new Route(0);
+                            }
+                        }
+
+                        int vehicleId = -1;
+                        Position position = null;
+                        String occupancy = "UNKNOWN";
+
+                        if (vp.hasVehicle() && vp.getVehicle().hasId()) {
+                            vehicleId = Integer.parseInt(vp.getVehicle().getId());
+                        }
+
+                        if (vp.hasPosition()) {
+                            position = new Position(
+                                    vp.getPosition().getLatitude(),
+                                    vp.getPosition().getLongitude(),
+                                    vp.getPosition().getBearing(),
+                                    vp.getPosition().getSpeed());
+                        }
+
+                        if (vp.hasOccupancyStatus()) {
+                            occupancy = String.valueOf(vp.getOccupancyStatus());
+                        }
+
+                        // Get direction from trip
+                        // String direction = null;
+                        // if (vp.hasTrip() && vp.getTrip().hasDirectionId()) {
+                        // direction = vp.getTrip().getDirectionId() == 0 ? "Outbound" : "Inbound";
+                        // }
+
+                        // Create Bus entity with direction
+                        Bus bus = new Bus(vehicleId, position, occupancy);
+                        buses.add(bus);
+                    }
+                }
+            }
+
+            // Cache the result
+            Map<String, Object> routeData = new HashMap<>();
+            routeData.put("route", route);
+            routeData.put("buses", buses);
+            routeData.put("routeNumber", routeNumber);
+            routeData.put("lastUpdated", new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            cachedData.put("route_" + routeNumber, routeData);
+
+            if (buses.isEmpty() || route == null) {
+                result.put("success", false);
+                result.put("message", "Route not found");
+            } else {
+                result.put("success", true);
+                result.put("route", route);
+                result.put("buses", buses);
+                result.put("routeNumber", routeNumber);
+                result.put("cached", false);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<Bus> getBusesByRouteId(int routeId) {
+        Map<String, Object> result = getBusesByRoute(String.valueOf(routeId));
+        if (result.containsKey("buses")) {
+            return (List<Bus>) result.get("buses");
+        }
+        return new ArrayList<>();
+    }
+
     public static void main(String[] args) {
         // 测试API
         BusDataBaseAPI api = new BusDataBaseAPI();
         api.getAllBuses();
-//
+        //
 //        // 测试时刻表查询
 //        Map<String, Object> schedule = api.getBusSchedule("12345");
 //        System.out.println("Schedule result: " + schedule);
 //        new BusDataBaseAPI().getAllBuses();
-//
+        //
 //        // 测试ETA查询
 //        Map<String, Object> eta = api.getBusETA("12345", "501");
 //        System.out.println("ETA result: " + eta);

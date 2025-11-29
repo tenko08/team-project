@@ -14,6 +14,9 @@ import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
+import interface_adapter.occupancy.OccupancyController;
+import interface_adapter.occupancy.OccupancyPresenter;
+import interface_adapter.occupancy.OccupancyViewModel;
 import interface_adapter.search_by_route.SearchByRouteController;
 import interface_adapter.search_by_route.SearchByRouteGateway;
 import interface_adapter.search_by_route.SearchByRouteGatewayImpl;
@@ -29,10 +32,14 @@ import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
 import use_case.map.MapInputBoundary;
 import use_case.map.MapInteractor;
 import use_case.map.MapOutputBoundary;
+import use_case.occupancy.OccupancyInputBoundary;
+import use_case.occupancy.OccupancyInteractor;
+import use_case.occupancy.OccupancyOutputBoundary;
 import use_case.search_by_route.SearchByRouteInteractor;
 import view.AlertsView;
 import view.FindNearestRouteView;
 import view.MapView;
+import view.OccupancyView;
 import view.SearchByRouteView;
 import view.ViewManager;
 import interface_adapter.bus_schedule_eta.BusScheduleController;
@@ -63,7 +70,8 @@ public class AppBuilder extends JFrame {
     final CacheAccessObject cacheAccessObject = new CacheAccessObject();
     final BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
 
-    // For other views: declare view and view model, then implement methods to add view and use case interactor
+    // For other views: declare view and view model, then implement methods to add
+    // view and use case interactor
     private MapView mapView;
     private MapViewModel mapViewModel;
     private FindNearestRouteView findNearestRouteView;
@@ -80,9 +88,12 @@ public class AppBuilder extends JFrame {
     private BusScheduleView busScheduleView;
     private BusScheduleViewModel busScheduleViewModel;
     private BusScheduleController busScheduleController;
+    private OccupancyView occupancyView;
+    private OccupancyViewModel occupancyViewModel;
+    private OccupancyController occupancyController;
 
     private final String[] themeList = {
-//            UIManager.getSystemLookAndFeelClassName(),
+            // UIManager.getSystemLookAndFeelClassName(),
             "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
             "javax.swing.plaf.metal.MetalLookAndFeel",
             "javax.swing.plaf.nimbus.NimbusLookAndFeel",
@@ -104,11 +115,12 @@ public class AppBuilder extends JFrame {
             for (Frame frame : Frame.getFrames()) {
                 updateLAFRecursively(frame);
             }
-        } catch (UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException |
-                 ClassNotFoundException e) {
+        } catch (UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException
+                | ClassNotFoundException e) {
             System.out.println("Error loading theme: " + e);
         }
     }
+
     public static void updateLAFRecursively(Window window) {
         for (Window childWindow : window.getOwnedWindows()) {
             updateLAFRecursively(childWindow);
@@ -137,16 +149,39 @@ public class AppBuilder extends JFrame {
     }
 
     public AppBuilder addFindNearestRouteUseCase() {
-        final FindNearestRouteOutputBoundary findNearestRouteOutputBoundary
-                = new FindNearestRoutePresenter(findNearestRouteViewModel);
+        final FindNearestRouteOutputBoundary findNearestRouteOutputBoundary = new FindNearestRoutePresenter(
+                findNearestRouteViewModel);
         // TODO: use DAO, this is tempdata
-        final FindNearestRouteInputBoundary findNearestRouteInteractor
-                = new FindNearestRouteInteractor(
+        final FindNearestRouteInputBoundary findNearestRouteInteractor = new FindNearestRouteInteractor(
                 busDataAccessObject
         , findNearestRouteOutputBoundary);
 
         FindNearestRouteController findNearestRouteController
                 = new FindNearestRouteController(findNearestRouteInteractor);
+                // new FindNearestRouteDataAccessInterface() {
+                // @Override
+                // public List<Route> getAllRoutes() {
+                // List<Route> routes = new ArrayList<Route>();
+                // Route route929 = new Route(929);
+                // route929.addBusStop(new BusStop(1526, 16, "Victoria Park Ave at Navaho Dr",
+                // new Position(43.800546, -79.334889)));
+                //
+                //// route929.addTrip(new Trip(72598070, route929, new Bus(9446,
+                //// new Position(43.65386, -79.43306, 164, 0),
+                //// "FEW_SEATS_AVAILABLE")));
+                ////
+                //// route929.addTrip(new Trip(76422070, route929, new Bus(9432,
+                //// new Position(43.7322, -79.45838, 253, 0),
+                //// "EMPTY")));
+                //
+                // routes.add(route929);
+                // return routes;
+                // }
+                // }
+                , findNearestRouteOutputBoundary);
+
+        FindNearestRouteController findNearestRouteController = new FindNearestRouteController(
+                findNearestRouteInteractor);
         findNearestRouteView.setController(findNearestRouteController);
         return this;
     }
@@ -202,6 +237,22 @@ public class AppBuilder extends JFrame {
         }
         busScheduleView = new BusScheduleView(busScheduleController, busScheduleViewModel);
         cardPanel.add(busScheduleView, busScheduleView.getViewName());
+    public AppBuilder addOccupancyUseCase() {
+        occupancyViewModel = new OccupancyViewModel();
+        final OccupancyOutputBoundary presenter = new OccupancyPresenter(occupancyViewModel);
+        final OccupancyInputBoundary interactor = new OccupancyInteractor(new BusDataBaseAPI(), presenter);
+        occupancyController = new OccupancyController(interactor);
+        return this;
+    }
+
+    public AppBuilder addOccupancyView() {
+        if (occupancyViewModel == null || occupancyController == null) {
+            // Ensure use case is initialized before view
+            addOccupancyUseCase();
+        }
+        occupancyView = new OccupancyView(occupancyViewModel, viewManagerModel);
+        occupancyView.setController(occupancyController);
+        cardPanel.add(occupancyView, occupancyView.getViewName());
         return this;
     }
 
@@ -217,7 +268,7 @@ public class AppBuilder extends JFrame {
         app.setContentPane(root);
 
         viewManagerModel.setState(mapView.getViewName()); // Default view
-//        viewManagerModel.setState(findNearestRouteView.getViewName());
+        // viewManagerModel.setState(findNearestRouteView.getViewName());
         viewManagerModel.firePropertyChange();
 
         return app;
@@ -258,21 +309,28 @@ public class AppBuilder extends JFrame {
             System.out.println("Search Bus ETA button clicked");
              viewManagerModel.setState(busScheduleView.getViewName());
              viewManagerModel.firePropertyChange();
+        JButton occupancyBtn = new JButton("Occupancy");
+        occupancyBtn.addActionListener(e -> {
+            if (occupancyView != null) {
+                viewManagerModel.setState(occupancyView.getViewName());
+                viewManagerModel.firePropertyChange();
+            }
         });
 
         toolBar.add(alertsBtn);
         toolBar.add(findNearestRouteBtn);
         toolBar.add(searchByRouteBtn);
         toolBar.add(searchBusETABtn);
+        toolBar.add(occupancyBtn);
 
         toolBar.add(Box.createHorizontalGlue());
 
-        JLabel themeNum = new JLabel((currentThemeIndex+1) + "/" + themeList.length);
+        JLabel themeNum = new JLabel((currentThemeIndex + 1) + "/" + themeList.length);
         themeNum.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         JButton changeThemeBtn = new JButton("Change Theme");
         changeThemeBtn.addActionListener(e -> {
             currentThemeIndex = (currentThemeIndex + 1) % themeList.length;
-            themeNum.setText((currentThemeIndex+1) + "/" + themeList.length);
+            themeNum.setText((currentThemeIndex + 1) + "/" + themeList.length);
             setTheme(currentThemeIndex);
 
         });

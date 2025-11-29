@@ -22,7 +22,7 @@ public class NominatimGeocodingClient {
     private final String userAgent;
 
     public NominatimGeocodingClient() {
-        this(defaultClient(), "https://nominatim.openstreetmap.org", "TTC Map Viewer/1.0");
+        this(defaultClient(), "https://nominatim.openstreetmap.org", buildDefaultUserAgent());
     }
 
     public NominatimGeocodingClient(OkHttpClient http, String baseUrl, String userAgent) {
@@ -33,8 +33,32 @@ public class NominatimGeocodingClient {
 
     private static OkHttpClient defaultClient() {
         return new OkHttpClient.Builder()
-                .callTimeout(Duration.ofSeconds(15))
+                .connectTimeout(Duration.ofSeconds(10))
+                .readTimeout(Duration.ofSeconds(25))
+                .writeTimeout(Duration.ofSeconds(25))
+                .retryOnConnectionFailure(true)
                 .build();
+    }
+
+    private static String buildDefaultUserAgent() {
+        // Nominatim usage policy requires a valid identifying User-Agent with a way to contact you.
+        // You can override the email via env NOMINATIM_EMAIL or system property nominatim.email
+        String email = getContactEmail();
+        if (email == null || email.isBlank()) {
+            return "TTC Map Viewer/1.0 (no-contact)";
+        }
+        return "TTC Map Viewer/1.0 (contact: " + email + ")";
+    }
+
+    private static String getContactEmail() {
+        String email = System.getProperty("nominatim.email");
+        if (email == null || email.isBlank()) {
+            try {
+                String env = System.getenv("NOMINATIM_EMAIL");
+                if (env != null && !env.isBlank()) email = env;
+            } catch (SecurityException ignored) {}
+        }
+        return email;
     }
 
     public List<Result> search(String query) throws IOException {
@@ -42,26 +66,75 @@ public class NominatimGeocodingClient {
     }
 
     public List<Result> search(String query, int limit) throws IOException {
-        HttpUrl url = HttpUrl.parse(baseUrl + "/search").newBuilder()
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl + "/search").newBuilder()
                 .addQueryParameter("format", "jsonv2")
                 .addQueryParameter("q", query)
                 .addQueryParameter("limit", String.valueOf(Math.max(1, Math.min(limit, 10))))
                 .addQueryParameter("addressdetails", "1")
-                .build();
+                ;
+
+        // If we have a contact email, include it per Nominatim recommendations
+        String contactEmail = getContactEmail();
+        if (contactEmail != null && !contactEmail.isBlank()) {
+            urlBuilder.addQueryParameter("email", contactEmail);
+        }
+        HttpUrl url = urlBuilder.build();
 
         Request req = new Request.Builder()
                 .url(url)
                 .header("User-Agent", userAgent)
+                .header("Accept-Language", "en")
                 .get()
                 .build();
 
-        try (Response resp = http.newCall(req).execute()) {
-            if (!resp.isSuccessful()) {
-                throw new IOException("Geocoding failed: HTTP " + resp.code());
+        IOException lastEx = null;
+        // Simple retry: up to 2 attempts for timeouts, 429 and temporary 5xx (503/502/504)
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            try (Response resp = http.newCall(req).execute()) {
+                if (resp.code() == 429) {
+                    // Too Many Requests — back off and retry once
+                    if (attempt == 2) {
+                        throw new IOException("Geocoding rate limited (HTTP 429). Please try again later.");
+                    }
+                    try { Thread.sleep(750); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                    continue;
+                }
+                if (resp.code() == 503 || resp.code() == 502 || resp.code() == 504) {
+                    // Service temporarily unavailable/bad gateway/gateway timeout — back off and retry once
+                    if (attempt == 2) {
+                        throw new IOException("Geocoding service temporarily unavailable (HTTP " + resp.code() + "). Please try again later.");
+                    }
+                    long delayMs = 1000;
+                    String retryAfter = resp.header("Retry-After");
+                    if (retryAfter != null) {
+                        try {
+                            // Retry-After may be seconds; parse conservatively
+                            long seconds = Long.parseLong(retryAfter.trim());
+                            delayMs = Math.max(500, Math.min(5000, seconds * 1000));
+                        } catch (NumberFormatException ignored) {}
+                    }
+                    try { Thread.sleep(delayMs); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                    continue;
+                }
+                if (!resp.isSuccessful()) {
+                    throw new IOException("Geocoding failed: HTTP " + resp.code());
+                }
+                String body = resp.body() != null ? resp.body().string() : "[]";
+                return parseResults(body);
+            } catch (java.net.SocketTimeoutException ste) {
+                lastEx = new IOException("Geocoding request timed out. Please check your internet connection and try again.", ste);
+                if (attempt == 2) throw lastEx;
+                try { Thread.sleep(500); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+            } catch (IOException ioe) {
+                lastEx = ioe;
+                // Non-timeout IO errors: don't retry unless it's the first attempt and potentially transient
+                if (attempt == 2) throw ioe;
+                try { Thread.sleep(300); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
             }
-            String body = resp.body() != null ? resp.body().string() : "[]";
-            return parseResults(body);
         }
+        // Should not reach here
+        if (lastEx != null) throw lastEx;
+        throw new IOException("Unknown geocoding error");
     }
 
     // Visible for tests

@@ -7,6 +7,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import use_case.map.MapDataAccessInterface;
+
 public class CacheAccessObject implements MapDataAccessInterface {
     private File cacheDir;
 
