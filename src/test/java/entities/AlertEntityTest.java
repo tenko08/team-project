@@ -1,4 +1,4 @@
-package use_case.alerts;
+package entities;
 
 import org.junit.Test;
 
@@ -10,8 +10,6 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class AlertEntityTest {
-    // Import the entity explicitly since this test lives under use_case.alerts
-    private static class _Imports { entities.Alert _a; }
 
     @Test
     public void constructorAndGetters_withNonNullLists_shouldDefensivelyCopyAndExposeUnmodifiable() {
@@ -20,7 +18,7 @@ public class AlertEntityTest {
         List<String> stops = new ArrayList<>(Collections.singletonList("S1"));
 
         long ts = 1700000000L;
-        entities.Alert alert = new entities.Alert(
+        Alert alert = new Alert(
                 "id-123",
                 "Header text",
                 "Description text",
@@ -75,7 +73,7 @@ public class AlertEntityTest {
 
     @Test
     public void constructor_withNullLists_shouldUseEmptyUnmodifiableLists() {
-        entities.Alert alert = new entities.Alert(
+        Alert alert = new Alert(
                 "id-0",
                 "H",
                 "D",
