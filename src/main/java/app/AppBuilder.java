@@ -1,14 +1,37 @@
 package app;
 
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Frame;
+import java.awt.Window;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
+
 import api.AlertDataBaseAPI;
 import api.BusDataBaseAPI;
 import data_access.BusDataAccessObject;
 import data_access.CacheAccessObject;
-import entities.*;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.alerts.AlertsController;
 import interface_adapter.alerts.AlertsPresenter;
 import interface_adapter.alerts.AlertsViewModel;
+import interface_adapter.bus_schedule_eta.BusScheduleController;
+import interface_adapter.bus_schedule_eta.BusScheduleGateway;
+import interface_adapter.bus_schedule_eta.BusScheduleGatewayImpl;
+import interface_adapter.bus_schedule_eta.BusSchedulePresenter;
+import interface_adapter.bus_schedule_eta.BusScheduleViewModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
 import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
@@ -25,7 +48,9 @@ import interface_adapter.search_by_route.SearchByRouteViewModel;
 import use_case.alerts.AlertsInputBoundary;
 import use_case.alerts.AlertsInteractor;
 import use_case.alerts.AlertsOutputBoundary;
-import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
+import use_case.bus_schedule_eta.BusScheduleInputBoundary;
+import use_case.bus_schedule_eta.BusScheduleInteractor;
+import use_case.bus_schedule_eta.BusScheduleOutputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInteractor;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
@@ -37,27 +62,12 @@ import use_case.occupancy.OccupancyInteractor;
 import use_case.occupancy.OccupancyOutputBoundary;
 import use_case.search_by_route.SearchByRouteInteractor;
 import view.AlertsView;
+import view.BusScheduleView;
 import view.FindNearestRouteView;
 import view.MapView;
 import view.OccupancyView;
 import view.SearchByRouteView;
 import view.ViewManager;
-import interface_adapter.bus_schedule_eta.BusScheduleController;
-import interface_adapter.bus_schedule_eta.BusScheduleGateway;
-import interface_adapter.bus_schedule_eta.BusScheduleGatewayImpl;
-import interface_adapter.bus_schedule_eta.BusSchedulePresenter;
-import interface_adapter.bus_schedule_eta.BusScheduleViewModel;
-import use_case.bus_schedule_eta.BusScheduleInputBoundary;
-import use_case.bus_schedule_eta.BusScheduleInteractor;
-import use_case.bus_schedule_eta.BusScheduleOutputBoundary;
-import view.BusScheduleView;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 public class AppBuilder extends JFrame {
     private final JPanel cardPanel = new JPanel();
@@ -178,10 +188,8 @@ public class AppBuilder extends JFrame {
                 // return routes;
                 // }
                 // }
-                , findNearestRouteOutputBoundary);
+                // , findNearestRouteOutputBoundary);
 
-        FindNearestRouteController findNearestRouteController = new FindNearestRouteController(
-                findNearestRouteInteractor);
         findNearestRouteView.setController(findNearestRouteController);
         return this;
     }
@@ -237,6 +245,9 @@ public class AppBuilder extends JFrame {
         }
         busScheduleView = new BusScheduleView(busScheduleController, busScheduleViewModel);
         cardPanel.add(busScheduleView, busScheduleView.getViewName());
+        return this;
+    }
+    
     public AppBuilder addOccupancyUseCase() {
         occupancyViewModel = new OccupancyViewModel();
         final OccupancyOutputBoundary presenter = new OccupancyPresenter(occupancyViewModel);
@@ -309,6 +320,8 @@ public class AppBuilder extends JFrame {
             System.out.println("Search Bus ETA button clicked");
              viewManagerModel.setState(busScheduleView.getViewName());
              viewManagerModel.firePropertyChange();
+        });
+
         JButton occupancyBtn = new JButton("Occupancy");
         occupancyBtn.addActionListener(e -> {
             if (occupancyView != null) {
