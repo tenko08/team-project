@@ -27,6 +27,7 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
     private final JTextField latInputField = new JTextField(15);
     private final JLabel errorField = new JLabel("");
     private final JButton backButton = new JButton("← Back to Map");
+    private final JButton homeButton = new JButton("Back");
 
     private final JTextArea outputArea = new JTextArea(6, 25);
     private FindNearestRouteController controller = null;
@@ -48,8 +49,13 @@ public class FindNearestRouteView extends JPanel implements ActionListener, Prop
         // === TOP BAR ===
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topBar.add(backButton);
+        topBar.add(homeButton);
         backButton.addActionListener(e -> {
             viewManagerModel.setState("map");
+            viewManagerModel.firePropertyChange();
+        });
+        homeButton.addActionListener(e -> {
+            viewManagerModel.setState("landing");
             viewManagerModel.firePropertyChange();
         });
         this.add(topBar, BorderLayout.NORTH);

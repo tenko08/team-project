@@ -27,6 +27,7 @@ public class AlertsView extends JPanel {
     private final JPanel centerCards = new JPanel(new CardLayout());
     private final JButton refreshButton = new JButton("Refresh Alerts");
     private final JButton backButton = new JButton("← Back to Map");
+    private final JButton homeButton = new JButton("Back");
     private final JLabel statusLabel = new JLabel(" ");
 
     public AlertsView(AlertsViewModel viewModel, AlertsController controller, ViewManagerModel viewManagerModel) {
@@ -40,6 +41,7 @@ public class AlertsView extends JPanel {
 
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topBar.add(backButton);
+        topBar.add(homeButton);
         topBar.add(refreshButton);
         topBar.add(toggleTableBtn);
         topBar.add(statusLabel);
@@ -65,6 +67,11 @@ public class AlertsView extends JPanel {
 
         backButton.addActionListener(e -> {
             viewManagerModel.setState("map");
+            viewManagerModel.firePropertyChange();
+        });
+
+        homeButton.addActionListener(e -> {
+            viewManagerModel.setState("landing");
             viewManagerModel.firePropertyChange();
         });
 

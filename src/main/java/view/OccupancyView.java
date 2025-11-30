@@ -22,6 +22,7 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
     private final JLabel routeLabel;
     private final JButton loadButton;
     private final JButton backButton;
+    private final JButton homeButton = new JButton("Back");
     private OccupancyController controller;
 
     public OccupancyView(OccupancyViewModel occupancyViewModel, ViewManagerModel viewManagerModel) {
@@ -38,7 +39,12 @@ public class OccupancyView extends JPanel implements PropertyChangeListener {
             viewManagerModel.setState("map");
             viewManagerModel.firePropertyChange();
         });
+        homeButton.addActionListener(e -> {
+            viewManagerModel.setState("landing");
+            viewManagerModel.firePropertyChange();
+        });
         topBar.add(backButton);
+        topBar.add(homeButton);
         add(topBar, BorderLayout.NORTH);
 
         // Main panel to hold content
