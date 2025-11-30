@@ -28,6 +28,9 @@ public class AlertsView extends JPanel {
     private final JButton refreshButton = new JButton("Refresh Alerts");
     private final JButton backButton = new JButton("← Back to Map");
     private final JButton homeButton = new JButton("Back");
+    // New: route filter controls
+    private final JTextField routeField = new JTextField(8);
+    private final JButton checkRouteBtn = new JButton("Check Route Alerts");
     private final JLabel statusLabel = new JLabel(" ");
 
     public AlertsView(AlertsViewModel viewModel, AlertsController controller, ViewManagerModel viewManagerModel) {
@@ -42,7 +45,15 @@ public class AlertsView extends JPanel {
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topBar.add(backButton);
         topBar.add(homeButton);
+        // Route filter cluster
+        JPanel routePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        routeField.setToolTipText("Enter route number/id (e.g., 36)");
+        routePanel.add(new JLabel("Route:"));
+        routePanel.add(routeField);
+        routePanel.add(checkRouteBtn);
+
         topBar.add(refreshButton);
+        topBar.add(routePanel);
         topBar.add(toggleTableBtn);
         topBar.add(statusLabel);
 
@@ -77,6 +88,8 @@ public class AlertsView extends JPanel {
 
         refreshButton.addActionListener(e -> triggerRefresh());
 
+        checkRouteBtn.addActionListener(e -> triggerRouteFilter());
+
         toggleTableBtn.addActionListener(e -> switchCenterCard());
 
         // Listen to view model updates
@@ -93,6 +106,23 @@ public class AlertsView extends JPanel {
         statusLabel.setText("Loading...");
         controller.execute();
     }
+
+    private void triggerRouteFilter() {
+        String routeId = routeField.getText() == null ? "" : routeField.getText().trim();
+        if (routeId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a route number/id", "Invalid input", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // Set loading state and fire so UI reflects it
+        viewModel.setLoading(true);
+        viewModel.setSelectedRouteId(routeId);
+        viewModel.setSelectedStopId(null);
+        viewModel.firePropertyChanged();
+        controller.executeForRoute(routeId);
+    }
+
+    // Note: Clearing any applied filter can be done by using the Refresh Alerts button,
+    // which resets selectedRouteId/selectedStopId via the interactor/presenter.
 
     private void render() {
         listModel.clear();
@@ -123,7 +153,10 @@ public class AlertsView extends JPanel {
             String err = viewModel.getErrorMessage();
             statusLabel.setText(err == null || err.isBlank() ? "Failed to load alerts" : err);
         } else {
-            if (selectedRoute != null || selectedStop != null) {
+            // Special message when user filtered by route and there are no alerts
+            if (selectedRoute != null && !selectedRoute.isBlank() && (alerts == null || alerts.isEmpty())) {
+                statusLabel.setText("There are no alerts or delays on this route");
+            } else if (selectedRoute != null || selectedStop != null) {
                 statusLabel.setText(String.format("Loaded %d alert(s) (%d relevant)", listModel.size(), relevant));
             } else {
                 statusLabel.setText(String.format("Loaded %d alert(s)", listModel.size()));
