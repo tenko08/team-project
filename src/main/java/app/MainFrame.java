@@ -24,6 +24,7 @@ public class MainFrame {
                     .addMapUseCase()
                     .addFindNearestRouteView()
                     .addFindNearestRouteUseCase()
+                    .addLandingView()
                     .addAlertsView()
                     .addSearchByRouteUseCase()
                     .addSearchByRouteView()

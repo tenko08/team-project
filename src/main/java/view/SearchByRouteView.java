@@ -23,6 +23,7 @@ public class SearchByRouteView extends JPanel {
     private final JButton searchButton = new JButton("Search Route");
     private final JButton clearButton = new JButton("Clear");
     private final JLabel statusLabel = new JLabel(" ");
+    private final JButton homeButton = new JButton("Back");
     private final PropertyChangeListener listener;
 
     private String lastRouteQuery = "";
@@ -68,12 +69,19 @@ public class SearchByRouteView extends JPanel {
         topBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         if (viewManagerModel != null) {
+            JPanel leftBtns = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             JButton backButton = new JButton("← Back to Map");
             backButton.addActionListener(e -> {
                 viewManagerModel.setState("map");
                 viewManagerModel.firePropertyChange();
             });
-            topBar.add(backButton, BorderLayout.WEST);
+            homeButton.addActionListener(e -> {
+                viewManagerModel.setState("landing");
+                viewManagerModel.firePropertyChange();
+            });
+            leftBtns.add(backButton);
+            leftBtns.add(homeButton);
+            topBar.add(leftBtns, BorderLayout.WEST);
         }
 
         topBar.add(statusLabel, BorderLayout.EAST);

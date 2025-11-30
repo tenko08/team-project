@@ -65,6 +65,7 @@ import view.AlertsView;
 import view.BusScheduleView;
 import view.FindNearestRouteView;
 import view.MapView;
+import view.LandingView;
 import view.OccupancyView;
 import view.SearchByRouteView;
 import view.ViewManager;
@@ -86,6 +87,7 @@ public class AppBuilder extends JFrame {
     private MapViewModel mapViewModel;
     private FindNearestRouteView findNearestRouteView;
     private FindNearestRouteViewModel findNearestRouteViewModel;
+    private LandingView landingView;
 
     private AlertsView alertsView;
     private AlertsViewModel alertsViewModel;
@@ -102,16 +104,17 @@ public class AppBuilder extends JFrame {
     private OccupancyViewModel occupancyViewModel;
     private OccupancyController occupancyController;
 
+    // Reordered so that previous "2/5" theme (Metal) is now first and used as default
     private final String[] themeList = {
-            // UIManager.getSystemLookAndFeelClassName(),
-            "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
+            // "2/5" → Metal is now the first (default) theme
             "javax.swing.plaf.metal.MetalLookAndFeel",
+            "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
             "javax.swing.plaf.nimbus.NimbusLookAndFeel",
             "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
             "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"
     };
 
-    private int currentThemeIndex = 0;
+    private int currentThemeIndex = 0; // Default points to the first theme (now Metal)
 
     public AppBuilder() {
         setTheme(0);
@@ -155,6 +158,21 @@ public class AppBuilder extends JFrame {
         findNearestRouteViewModel = new FindNearestRouteViewModel();
         findNearestRouteView = new FindNearestRouteView(viewManagerModel, findNearestRouteViewModel);
         cardPanel.add(findNearestRouteView, findNearestRouteView.getViewName());
+        return this;
+    }
+
+    public AppBuilder addLandingView() {
+        // Ensure dependencies exist
+        if (mapView == null) {
+            addMapView();
+        }
+        if (findNearestRouteView == null) {
+            addFindNearestRouteView();
+        }
+        landingView = new LandingView(viewManagerModel,
+                findNearestRouteView.getViewName(),
+                mapView.getViewName());
+        cardPanel.add(landingView, landingView.getViewName());
         return this;
     }
 
@@ -278,7 +296,12 @@ public class AppBuilder extends JFrame {
 
         app.setContentPane(root);
 
-        viewManagerModel.setState(mapView.getViewName()); // Default view
+        // Default to landing page if available; otherwise fallback to map
+        if (landingView != null) {
+            viewManagerModel.setState(landingView.getViewName());
+        } else {
+            viewManagerModel.setState(mapView.getViewName());
+        }
         // viewManagerModel.setState(findNearestRouteView.getViewName());
         viewManagerModel.firePropertyChange();
 
@@ -288,18 +311,6 @@ public class AppBuilder extends JFrame {
     private JComponent buildToolbar() {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-
-        JButton alertsBtn = new JButton("Alerts");
-        alertsBtn.addActionListener(e -> {
-            // Navigate to Alerts view and trigger refresh
-            viewManagerModel.setState("alerts");
-            viewManagerModel.firePropertyChange();
-            if (alertsController != null && alertsViewModel != null) {
-                alertsViewModel.setLoading(true);
-                alertsViewModel.firePropertyChanged();
-                alertsController.execute();
-            }
-        });
 
         JButton findNearestRouteBtn = new JButton("Find Nearest Route");
         findNearestRouteBtn.addActionListener(e -> {
@@ -330,11 +341,24 @@ public class AppBuilder extends JFrame {
             }
         });
 
-        toolBar.add(alertsBtn);
         toolBar.add(findNearestRouteBtn);
         toolBar.add(searchByRouteBtn);
         toolBar.add(searchBusETABtn);
         toolBar.add(occupancyBtn);
+
+        // Put Alerts tab last, after Occupancy
+        JButton alertsBtn = new JButton("Alerts");
+        alertsBtn.addActionListener(e -> {
+            // Navigate to Alerts view and trigger refresh
+            viewManagerModel.setState("alerts");
+            viewManagerModel.firePropertyChange();
+            if (alertsController != null && alertsViewModel != null) {
+                alertsViewModel.setLoading(true);
+                alertsViewModel.firePropertyChanged();
+                alertsController.execute();
+            }
+        });
+        toolBar.add(alertsBtn);
 
         toolBar.add(Box.createHorizontalGlue());
 
