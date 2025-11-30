@@ -56,17 +56,11 @@ public class Position {
 
     // --- Utility ---
     public double distanceTo(Position other) {
-        double lat1 = Math.toRadians(this.latitude);
-        double lat2 = Math.toRadians(other.latitude);
-        double deltaLat = Math.toRadians(other.latitude - this.latitude);
-        double deltaLon = Math.toRadians(other.longitude - this.longitude);
-
-        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
-                + Math.cos(lat1) * Math.cos(lat2)
-                * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return EARTH_RADIUS_METERS * c;
+        double dx = other.latitude - this.latitude;
+        double dy = other.longitude - this.longitude;
+        return Math.sqrt(dx * dx + dy * dy);
     }
+
 
     @Override
     public String toString() {
