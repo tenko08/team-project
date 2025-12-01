@@ -95,10 +95,23 @@ public class BusDataBaseAPI implements BusDataBase {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            // 添加站点ID验证
+            if (!isValidStopId(stopId)) {
+                result.put("success", false);
+                result.put("message", "Stop not found: " + stopId);
+                result.put("cached", false);
+                result.put("noBuses", false);
+                return result;
+            }
+
             // 生成特定站点的时刻表数据
             Map<String, Object> scheduleData = generateSpecificStopSchedule(stopId);
             result.put("success", true);
             result.put("data", scheduleData);
+            result.put("cached", false);
+            result.put("noBuses", scheduleData.get("arrivals") == null ||
+                    ((List<?>) scheduleData.get("arrivals")).isEmpty());
+
             cachedData.put("schedule_" + stopId, scheduleData);
 
         } catch (Exception e) {
@@ -107,6 +120,17 @@ public class BusDataBaseAPI implements BusDataBase {
         }
 
         return result;
+    }
+
+    private boolean isValidStopId(String stopId) {
+        try {
+            int id = Integer.parseInt(stopId);
+            // 定义一些有效的站点ID范围（根据实际的TTC站点ID）
+            // 例如：真实TTC站点ID通常在1000-20000范围内
+            return id >= 1000 && id <= 20000;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     // 获取巴士ETA
@@ -228,6 +252,14 @@ public class BusDataBaseAPI implements BusDataBase {
     private Map<String, Object> handleStaticDataFallback(String stopId) {
         Map<String, Object> result = new HashMap<>();
 
+        // 首先验证站点ID
+        if (!isValidStopId(stopId)) {
+            result.put("success", false);
+            result.put("message", "Stop not found: " + stopId);
+            result.put("cached", false);
+            return result;
+        }
+
         // 检查缓存
         Map<String, Object> cached = (Map<String, Object>) cachedData.get("schedule_" + stopId);
         if (cached != null) {
@@ -235,18 +267,20 @@ public class BusDataBaseAPI implements BusDataBase {
             result.put("data", cached);
             result.put("cached", true);
         } else {
-            // 生成基本的静态数据
-            Map<String, Object> staticData = generateSpecificStopSchedule(stopId);
-            staticData.put("note", "使用回退数据 - API可能不可用");
-
-            result.put("success", true);
-            result.put("data", staticData);
-            result.put("fallback", true);
-
-            // 缓存回退数据
-            cachedData.put("schedule_" + stopId, staticData);
+            // 只有有效站点ID才生成回退数据
+            if (isValidStopId(stopId)) {
+                Map<String, Object> staticData = generateSpecificStopSchedule(stopId);
+                staticData.put("note", "API can not be used");
+                result.put("success", true);
+                result.put("data", staticData);
+                result.put("fallback", true);
+                cachedData.put("schedule_" + stopId, staticData);
+            } else {
+                result.put("success", false);
+                result.put("message", "Stop not found: " + stopId);
+                result.put("fallback", false);
+            }
         }
-
         return result;
     }
 
