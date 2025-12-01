@@ -35,6 +35,7 @@ import interface_adapter.bus_schedule_eta.BusScheduleViewModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
 import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
+import interface_adapter.map.MapController;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
 import interface_adapter.occupancy.OccupancyController;
@@ -85,6 +86,7 @@ public class AppBuilder extends JFrame {
     // view and use case interactor
     private MapView mapView;
     private MapViewModel mapViewModel;
+    private MapInputBoundary mapInteractor;
     private FindNearestRouteView findNearestRouteView;
     private FindNearestRouteViewModel findNearestRouteViewModel;
     private LandingView landingView;
@@ -150,7 +152,11 @@ public class AppBuilder extends JFrame {
 
     public AppBuilder addMapUseCase() {
         final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);
-        final MapInputBoundary MapInteractor = new MapInteractor(cacheAccessObject, mapOutputBoundary);
+        mapOutputBoundary.addWaypointChangeListener(mapView);
+        mapInteractor = new MapInteractor(cacheAccessObject, busDataAccessObject, mapOutputBoundary);
+
+        MapController controller = new MapController(mapInteractor);
+        mapView.setMapController(controller);
         return this;
     }
 
@@ -234,7 +240,7 @@ public class AppBuilder extends JFrame {
         searchByRouteViewModel = new SearchByRouteViewModel();
         SearchByRouteGateway gateway = new SearchByRouteGatewayImpl(new BusDataAccessObject());
         SearchByRoutePresenter presenter = new SearchByRoutePresenter(searchByRouteViewModel);
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, mapInteractor);
         searchByRouteController = new SearchByRouteController(interactor);
         return this;
     }

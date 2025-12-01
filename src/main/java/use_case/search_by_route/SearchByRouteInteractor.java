@@ -3,6 +3,7 @@ package use_case.search_by_route;
 import entities.Bus;
 import entities.Route;
 import interface_adapter.search_by_route.SearchByRouteGateway;
+import use_case.map.MapInputBoundary;
 
 import java.util.List;
 import java.util.Map;
@@ -10,11 +11,14 @@ import java.util.Map;
 public class SearchByRouteInteractor implements SearchByRouteInputBoundary {
     private final SearchByRouteGateway searchByRouteGateway;
     private final SearchByRouteOutputBoundary outputBoundary;
+    private final MapInputBoundary mapInputBoundary;
 
     public SearchByRouteInteractor(SearchByRouteGateway searchByRouteGateway,
-                                   SearchByRouteOutputBoundary outputBoundary) {
+                                   SearchByRouteOutputBoundary outputBoundary,
+                                   MapInputBoundary mapInputBoundary) {
         this.searchByRouteGateway = searchByRouteGateway;
         this.outputBoundary = outputBoundary;
+        this.mapInputBoundary = mapInputBoundary;
     }
 
     @Override
@@ -50,6 +54,7 @@ public class SearchByRouteInteractor implements SearchByRouteInputBoundary {
                 } else {
                     outputBoundary.prepareSuccessView(outputData);
                 }
+                mapInputBoundary.showBuses(outputData);
             } else {
                 String errorMessage = (String) result.getOrDefault("message", "Route not found");
                 outputBoundary.prepareFailView(errorMessage);

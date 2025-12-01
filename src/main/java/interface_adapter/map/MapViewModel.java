@@ -16,7 +16,7 @@ public class MapViewModel extends ViewModel<MapState> {
     public static final double LAT = 43.65;
     public static final double LON = -79.38;
     public GeoPosition toronto = new GeoPosition(LAT, LON);
-    private Set<Waypoint> waypoints = new HashSet<Waypoint>(Arrays.asList());
+    private Set<Waypoint> waypoints = null;
 
     public MapViewModel() {
         super("map");

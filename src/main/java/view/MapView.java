@@ -2,10 +2,14 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Set;
 
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
+import interface_adapter.map.MapController;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.input.CenterMapListener;
 import org.jxmapviewer.input.PanKeyListener;
@@ -15,14 +19,18 @@ import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import interface_adapter.map.MapViewModel;
-import interface_adapter.map.SelectionAdapter;
+import interface_adapter.map.MapController;
+import org.jxmapviewer.viewer.Waypoint;
+import org.jxmapviewer.viewer.WaypointPainter;
 
-public class MapView extends JPanel {
+public class MapView extends JPanel implements PropertyChangeListener {
     private final String viewName = "map";
     private final MapViewModel mapViewModel;
+    private MapController mapController = null;
     private JXMapViewer mapViewer;
     private TileFactoryInfo info;
     private DefaultTileFactory tileFactory;
+    private WaypointPainter<Waypoint> waypointPainter = new WaypointPainter<>();
 
     public MapView(MapViewModel mapViewModel) {
         this.mapViewModel = mapViewModel;
@@ -53,10 +61,7 @@ public class MapView extends JPanel {
 
         mapViewer.addKeyListener(new PanKeyListener(mapViewer));
 
-        // Add a selection painter
-        SelectionAdapter sa = new SelectionAdapter(mapViewer);
-        mapViewer.addMouseListener(sa);
-        mapViewer.addMouseMotionListener(sa);
+        mapViewer.setOverlayPainter(waypointPainter);
 
         // Ensure the map view fills available space
         add(mapViewer, BorderLayout.CENTER);
@@ -69,4 +74,13 @@ public class MapView extends JPanel {
     }
 
     public String getViewName() { return viewName; }
+
+    public void setMapController(MapController controller) {
+        this.mapController = controller;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        waypointPainter.setWaypoints((Set<? extends Waypoint>) evt.getNewValue());
+    }
 }
