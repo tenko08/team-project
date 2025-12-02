@@ -156,6 +156,9 @@ public class AlertsView extends JPanel {
             // Special message when user filtered by route and there are no alerts
             if (selectedRoute != null && !selectedRoute.isBlank() && (alerts == null || alerts.isEmpty())) {
                 statusLabel.setText("There are no alerts or delays on this route");
+            } else if ((selectedRoute == null && selectedStop == null) && (alerts == null || alerts.isEmpty())) {
+                // Global case: no filters and zero alerts loaded
+                statusLabel.setText("There are currently no alerts or delays");
             } else if (selectedRoute != null || selectedStop != null) {
                 statusLabel.setText(String.format("Loaded %d alert(s) (%d relevant)", listModel.size(), relevant));
             } else {
