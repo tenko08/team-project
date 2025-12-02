@@ -11,23 +11,30 @@ import java.util.List;
 public class MapInteractor implements MapInputBoundary {
     private final MapDataAccessInterface cacheDataAccessObject;
     private final MapDataAccessInterface busDataAccessObject;
+    private final RouteShapeDataAccessInterface routeShapeDataAccessObject;
     private final MapOutputBoundary mapPresenter;
 
     public MapInteractor(MapDataAccessInterface cacheDataAccessObject, MapDataAccessInterface busDataAccessObject,
+                         RouteShapeDataAccessInterface routeShapeDataAccessInterface,
                          MapOutputBoundary mapOutputBoundary) {
         this.cacheDataAccessObject = cacheDataAccessObject;
         this.busDataAccessObject = busDataAccessObject;
+        this.routeShapeDataAccessObject = routeShapeDataAccessInterface;
         this.mapPresenter = mapOutputBoundary;
     }
 
     @Override
-    public void showBuses(SearchByRouteOutputData searchByRouteOutputData) {
+    public void showRoute(SearchByRouteOutputData searchByRouteOutputData) {
         List<Bus> buses = searchByRouteOutputData.getBuses();
-        ArrayList<GeoPosition> geoPositions = new ArrayList<>();
-        for (Bus bus: buses) {
-            geoPositions.add(PosToGeoPos.toGeoPosition(bus.getPosition()));
+        ArrayList<GeoPosition> busGeoPositions = new ArrayList<>();
+        ArrayList<GeoPosition> routeShapePoints = routeShapeDataAccessObject.getShapeById(
+                searchByRouteOutputData.getRoute().getRouteNumber()).getPoints();
+        if (!buses.isEmpty()) {
+            for (Bus bus: buses) {
+                busGeoPositions.add(PosToGeoPos.toGeoPosition(bus.getPosition()));
+            }
         }
-        BusListOutput busListOutput = new BusListOutput(geoPositions);
-        mapPresenter.prepareBusView(busListOutput);
+        MapOutputData mapOutputData = new MapOutputData(busGeoPositions, routeShapePoints);
+        mapPresenter.prepareRouteView(mapOutputData);
     }
 }

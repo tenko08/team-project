@@ -23,6 +23,7 @@ import api.AlertDataBaseAPI;
 import api.BusDataBaseAPI;
 import data_access.BusDataAccessObject;
 import data_access.CacheAccessObject;
+import data_access.RouteShapeDataAccessObject;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.alerts.AlertsController;
 import interface_adapter.alerts.AlertsPresenter;
@@ -55,9 +56,7 @@ import use_case.bus_schedule_eta.BusScheduleOutputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInteractor;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
-import use_case.map.MapInputBoundary;
-import use_case.map.MapInteractor;
-import use_case.map.MapOutputBoundary;
+import use_case.map.*;
 import use_case.occupancy.OccupancyInputBoundary;
 import use_case.occupancy.OccupancyInteractor;
 import use_case.occupancy.OccupancyOutputBoundary;
@@ -79,8 +78,9 @@ public class AppBuilder extends JFrame {
     ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
     // DAO using file cache
-    final CacheAccessObject cacheAccessObject = new CacheAccessObject();
+    final MapDataAccessInterface cacheAccessObject = new CacheAccessObject();
     final BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
+    final RouteShapeDataAccessInterface routeShapeDataAccessInterface = new RouteShapeDataAccessObject();
 
     // For other views: declare view and view model, then implement methods to add
     // view and use case interactor
@@ -153,7 +153,8 @@ public class AppBuilder extends JFrame {
     public AppBuilder addMapUseCase() {
         final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);
         mapOutputBoundary.addWaypointChangeListener(mapView);
-        mapInteractor = new MapInteractor(cacheAccessObject, busDataAccessObject, mapOutputBoundary);
+        mapInteractor = new MapInteractor(cacheAccessObject, busDataAccessObject, routeShapeDataAccessInterface,
+                mapOutputBoundary);
 
         MapController controller = new MapController(mapInteractor);
         mapView.setMapController(controller);
@@ -240,7 +241,8 @@ public class AppBuilder extends JFrame {
         searchByRouteViewModel = new SearchByRouteViewModel();
         SearchByRouteGateway gateway = new SearchByRouteGatewayImpl(new BusDataAccessObject());
         SearchByRoutePresenter presenter = new SearchByRoutePresenter(searchByRouteViewModel);
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, mapInteractor);
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter,
+                routeShapeDataAccessInterface, mapInteractor);
         searchByRouteController = new SearchByRouteController(interactor);
         return this;
     }

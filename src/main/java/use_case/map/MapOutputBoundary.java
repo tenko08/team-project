@@ -3,6 +3,6 @@ package use_case.map;
 import java.beans.PropertyChangeListener;
 
 public interface MapOutputBoundary {
-    void prepareBusView(BusListOutput busList);
+    void prepareRouteView(MapOutputData mapOutputData);
     void addWaypointChangeListener(PropertyChangeListener listener);
 }

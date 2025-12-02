@@ -6,8 +6,6 @@ import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.jxmapviewer.viewer.Waypoint;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -16,7 +14,8 @@ public class MapViewModel extends ViewModel<MapState> {
     public static final double LAT = 43.65;
     public static final double LON = -79.38;
     public GeoPosition toronto = new GeoPosition(LAT, LON);
-    private Set<Waypoint> waypoints = null;
+    private Set<Waypoint> busLocations = null;
+    private List<GeoPosition> routeShapePoints = null;
 
     public MapViewModel() {
         super("map");
@@ -27,11 +26,15 @@ public class MapViewModel extends ViewModel<MapState> {
         setState(new MapState());
     }
 
-    public Set<Waypoint> getWaypoints() {
-        return waypoints;
+    public Set<Waypoint> getBusLocations() { return busLocations; }
+
+    public void setBusLocations(Set<Waypoint> busLocations) {
+        this.busLocations = busLocations;
     }
 
-    public void setWaypoints(Set<Waypoint> waypoints) {
-        this.waypoints = waypoints;
+    public List<GeoPosition> getRouteShapePoints() { return routeShapePoints; }
+
+    public void setRouteShapePoints(List<GeoPosition> routeShapePoints) {
+        this.routeShapePoints = routeShapePoints;
     }
 }

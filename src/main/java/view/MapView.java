@@ -4,9 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.swing.JPanel;
+
+import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 
 import interface_adapter.map.MapController;
@@ -15,11 +17,12 @@ import org.jxmapviewer.input.CenterMapListener;
 import org.jxmapviewer.input.PanKeyListener;
 import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
+import org.jxmapviewer.painter.Painter;
+import org.jxmapviewer.painter.CompoundPainter;
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import interface_adapter.map.MapViewModel;
-import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
 public class MapView extends JPanel implements PropertyChangeListener {
@@ -32,6 +35,7 @@ public class MapView extends JPanel implements PropertyChangeListener {
     private WaypointPainter busIconPainter = new WaypointPainter();
 
     public MapView(MapViewModel mapViewModel) {
+
         this.mapViewModel = mapViewModel;
         setLayout(new BorderLayout());
         mapViewer = new JXMapViewer();
@@ -60,8 +64,8 @@ public class MapView extends JPanel implements PropertyChangeListener {
 
         mapViewer.addKeyListener(new PanKeyListener(mapViewer));
 
-        mapViewer.setOverlayPainter(busIconPainter);
         busIconPainter.setRenderer(new FancyWaypointRenderer());
+        mapViewer.setOverlayPainter(busIconPainter);
 
         // Ensure the map view fills available space
         add(mapViewer, BorderLayout.CENTER);
@@ -81,6 +85,12 @@ public class MapView extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        busIconPainter.setWaypoints((Set<? extends Waypoint>) evt.getNewValue());
+        busIconPainter.setWaypoints(mapViewModel.getBusLocations());
+        RoutePainter routePainter = new RoutePainter(mapViewModel.getRouteShapePoints());
+        List<Painter<JXMapViewer>> painters = new ArrayList<>();
+        painters.add(routePainter);
+        painters.add(busIconPainter);
+        CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(painters);
+        mapViewer.setOverlayPainter(painter);
     }
 }
