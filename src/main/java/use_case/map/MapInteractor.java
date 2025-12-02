@@ -1,14 +1,19 @@
 package use_case.map;
 
+import api.BusDataBase;
+import api.BusDataBaseAPI;
 import entities.Bus;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;
 import interface_adapter.PosToGeoPos;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
-import use_case.search_by_route.SearchByRouteOutputData;
+
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MapInteractor implements MapInputBoundary {
     private final RouteShapeDataAccessInterface routeShapeDataAccessObject;
@@ -16,23 +21,36 @@ public class MapInteractor implements MapInputBoundary {
     private FindNearestRouteOutputBoundary findNearestRouteOutputBoundary;
     private JXMapViewer mapViewer;
     private boolean cursorWaypointExists = false;
+    private BusDataBase busDatabase = new BusDataBaseAPI();
+    private int routeOfFocus = -1;
 
     public MapInteractor(RouteShapeDataAccessInterface routeShapeDataAccessInterface,
                          MapOutputBoundary mapOutputBoundary) {
         this.routeShapeDataAccessObject = routeShapeDataAccessInterface;
         this.mapPresenter = mapOutputBoundary;
+
+        Runnable updateBuses = new Runnable() {
+            public void run() {
+                if (routeOfFocus != -1) {
+                    showRoute(routeOfFocus);
+                }
+            }
+        };
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(updateBuses, 0, 10, TimeUnit.SECONDS);
+
     }
 
     @Override
-    public void showRoute(SearchByRouteOutputData searchByRouteOutputData) {
-        List<Bus> buses = searchByRouteOutputData.getBuses();
+    public void showRoute(String routeNumber) { showRoute(Integer.parseInt(routeNumber)); }
+    public void showRoute(int routeNo) {
+        List<Bus> buses = busDatabase.getBusesByRouteId(routeNo);
         ArrayList<GeoPosition> busGeoPositions = new ArrayList<>();
-        int routeNumber = searchByRouteOutputData.getRoute().getRouteNumber();
-        List<String> branches = routeShapeDataAccessObject.getListOfBranches(routeNumber);
+        List<String> branches = routeShapeDataAccessObject.getListOfBranches(routeNo);
         List<List<GeoPosition>> routeShapePoints = new ArrayList();
         for (int i = 0; i < branches.size(); i++) {
             routeShapePoints.add(routeShapeDataAccessObject.getShapeById(
-                    routeNumber + "-" + branches.get(i)).getPoints());
+                    String.valueOf(routeNo) + "-" + branches.get(i)).getPoints());
         }
         if (!buses.isEmpty()) {
             for (Bus bus: buses) {
@@ -41,6 +59,7 @@ public class MapInteractor implements MapInputBoundary {
         }
         MapOutputData mapOutputData = new MapOutputData(busGeoPositions, routeShapePoints);
         mapPresenter.prepareRouteView(mapOutputData);
+        routeOfFocus = routeNo;
     }
 
     public void markWaypoint (MapInputData mapInputData) {

@@ -59,18 +59,11 @@ public class SearchByRouteInteractor implements SearchByRouteInputBoundary {
                 } else {
                     outputBoundary.prepareSuccessView(outputData);
                 }
-                mapInputBoundary.showRoute(outputData);
+                mapInputBoundary.showRoute(routeNumber);
             } else {
                 int id = Integer.parseInt(routeNumber);
                 if (routeShapeDataAccess.hasRoute(id)) {
-                    SearchByRouteOutputData outputData = new SearchByRouteOutputData(
-                            false,
-                            new Route(id),
-                            new ArrayList(),
-                            null,
-                            isCached
-                    );
-                    mapInputBoundary.showRoute(outputData);
+                    mapInputBoundary.showRoute(routeNumber);
                     outputBoundary.prepareFailView("No buses running at this time.");
                 }
                 else {
