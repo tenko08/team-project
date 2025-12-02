@@ -14,18 +14,18 @@ import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.opencsv.CSVReader;
-import use_case.map.MapDataAccessInterface;
 import use_case.search_by_route.SearchByRouteDataAccessInterface;
 
 import java.io.FileReader;
 import java.util.List;
 
 
-public class BusDataAccessObject implements FindNearestRouteDataAccessInterface, SearchByRouteDataAccessInterface, MapDataAccessInterface {
+public class BusDataAccessObject implements FindNearestRouteDataAccessInterface, SearchByRouteDataAccessInterface{
     private static final String API_URL_VEHICLES = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
         private static final String API_URL_TRIPS = "https://bustime.ttc.ca/gtfsrt/trips";
@@ -36,13 +36,6 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface,
 
     private final Request requestTrips = new Request.Builder().url(API_URL_TRIPS).build();
 
-    @Override
-    public File getCacheDir() {
-        // Return cache directory similar to CacheAccessObject
-        return new File(System.getProperty("user.home") + File.separator + ".jxmapviewer2");
-    }
-
-    @Override
     public List<Bus> getAllBuses() {
         final OkHttpClient client = new OkHttpClient();
 
@@ -254,7 +247,8 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface,
 
     private List<String> getAllRouteIds() throws IOException, CsvException {
         List<String> routeIds = new ArrayList<>();
-        CSVReader reader = new CSVReader(new FileReader("src/main/java/data/routes.csv"));
+        URL resource = getClass().getResource("/routes.csv");
+        CSVReader reader = new CSVReader(new FileReader(resource.getFile()));
         List<String[]> rows = reader.readAll();
 
         for (int i = 1; i < rows.size(); i++) {
@@ -269,7 +263,8 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface,
     // Returns a hashmap mapping the butStopId to the BusStop object for better lookup
     private HashMap<Integer, BusStop> getAllBusStops() throws IOException, CsvException {
         HashMap<Integer, BusStop> busStopList = new HashMap<>();
-        CSVReader reader = new CSVReader(new FileReader("src/main/java/data/stops.csv"));
+        URL resource = getClass().getResource("/stops.csv");
+        CSVReader reader = new CSVReader(new FileReader(resource.getFile()));
         List<String[]> rows = reader.readAll();
 
         for (int i = 1; i < rows.size(); i++) {

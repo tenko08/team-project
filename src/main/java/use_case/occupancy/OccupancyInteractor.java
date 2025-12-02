@@ -2,6 +2,8 @@ package use_case.occupancy;
 
 import api.BusDataBase;
 import entities.Bus;
+import use_case.search_by_route.SearchByRouteInputBoundary;
+import use_case.search_by_route.SearchByRouteInputData;
 
 /**
  * Interactor for the Occupancy Use Case.
@@ -10,10 +12,19 @@ import entities.Bus;
 public class OccupancyInteractor implements OccupancyInputBoundary {
     private final BusDataBase busDataBase;
     private final OccupancyOutputBoundary outputBoundary;
+    private final SearchByRouteInputBoundary searchByRouteInputBoundary;
 
     public OccupancyInteractor(BusDataBase busDataBase, OccupancyOutputBoundary outputBoundary) {
         this.busDataBase = busDataBase;
         this.outputBoundary = outputBoundary;
+        this.searchByRouteInputBoundary = null;
+    }
+
+    public OccupancyInteractor(BusDataBase busDataBase, OccupancyOutputBoundary outputBoundary,
+                               SearchByRouteInputBoundary searchByRouteInputBoundary) {
+        this.busDataBase = busDataBase;
+        this.outputBoundary = outputBoundary;
+        this.searchByRouteInputBoundary = searchByRouteInputBoundary;
     }
 
     @Override
@@ -73,7 +84,9 @@ public class OccupancyInteractor implements OccupancyInputBoundary {
     }
 
     private void handleRoute(entities.Route route) {
-        java.util.List<Bus> buses = busDataBase.getBusesByRouteId(route.getRouteNumber());
+        int routeNumber = route.getRouteNumber();
+        java.util.List<Bus> buses = busDataBase.getBusesByRouteId(routeNumber);
+        searchByRouteInputBoundary.execute(new SearchByRouteInputData(String.valueOf(routeNumber)));
 
         if (buses.isEmpty()) {
             outputBoundary.prepareFailView("No buses found for route " + route.getRouteNumber());

@@ -5,6 +5,12 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Window;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Properties;
+import java.util.Scanner;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -22,7 +28,7 @@ import javax.swing.WindowConstants;
 import api.AlertDataBaseAPI;
 import api.BusDataBaseAPI;
 import data_access.BusDataAccessObject;
-import data_access.CacheAccessObject;
+import data_access.RouteShapeDataAccessObject;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.alerts.AlertsController;
 import interface_adapter.alerts.AlertsPresenter;
@@ -35,6 +41,7 @@ import interface_adapter.bus_schedule_eta.BusScheduleViewModel;
 import interface_adapter.find_nearest_route.FindNearestRouteController;
 import interface_adapter.find_nearest_route.FindNearestRoutePresenter;
 import interface_adapter.find_nearest_route.FindNearestRouteViewModel;
+import interface_adapter.map.MapController;
 import interface_adapter.map.MapPresenter;
 import interface_adapter.map.MapViewModel;
 import interface_adapter.occupancy.OccupancyController;
@@ -54,12 +61,11 @@ import use_case.bus_schedule_eta.BusScheduleOutputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInputBoundary;
 import use_case.find_nearest_route.FindNearestRouteInteractor;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
-import use_case.map.MapInputBoundary;
-import use_case.map.MapInteractor;
-import use_case.map.MapOutputBoundary;
+import use_case.map.*;
 import use_case.occupancy.OccupancyInputBoundary;
 import use_case.occupancy.OccupancyInteractor;
 import use_case.occupancy.OccupancyOutputBoundary;
+import use_case.search_by_route.SearchByRouteInputBoundary;
 import use_case.search_by_route.SearchByRouteInteractor;
 import view.AlertsView;
 import view.BusScheduleView;
@@ -78,13 +84,14 @@ public class AppBuilder extends JFrame {
     ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
     // DAO using file cache
-    final CacheAccessObject cacheAccessObject = new CacheAccessObject();
     final BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
+    final RouteShapeDataAccessInterface routeShapeDataAccessInterface = new RouteShapeDataAccessObject();
 
     // For other views: declare view and view model, then implement methods to add
     // view and use case interactor
     private MapView mapView;
     private MapViewModel mapViewModel;
+    private MapInputBoundary mapInteractor;
     private FindNearestRouteView findNearestRouteView;
     private FindNearestRouteViewModel findNearestRouteViewModel;
     private LandingView landingView;
@@ -96,6 +103,7 @@ public class AppBuilder extends JFrame {
     private SearchByRouteView searchByRouteView;
     private SearchByRouteViewModel searchByRouteViewModel;
     private SearchByRouteController searchByRouteController;
+    private SearchByRouteInputBoundary searchByRouteInputBoundary;
 
     private BusScheduleView busScheduleView;
     private BusScheduleViewModel busScheduleViewModel;
@@ -103,6 +111,8 @@ public class AppBuilder extends JFrame {
     private OccupancyView occupancyView;
     private OccupancyViewModel occupancyViewModel;
     private OccupancyController occupancyController;
+
+    Properties prop = new Properties();
 
     // Reordered so that previous "2/5" theme (Metal) is now first and used as default
     private final String[] themeList = {
@@ -117,7 +127,16 @@ public class AppBuilder extends JFrame {
     private int currentThemeIndex = 0; // Default points to the first theme (now Metal)
 
     public AppBuilder() {
-        setTheme(0);
+        try {
+            Scanner sc = new Scanner(new File("themeConfig.txt"));
+            currentThemeIndex = sc.nextInt();
+            sc.close();
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("Config file not found");
+        }
+
+        setTheme(currentThemeIndex);
         cardPanel.setLayout(cardLayout);
     }
 
@@ -150,7 +169,11 @@ public class AppBuilder extends JFrame {
 
     public AppBuilder addMapUseCase() {
         final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);
-        final MapInputBoundary MapInteractor = new MapInteractor(cacheAccessObject, mapOutputBoundary);
+        mapOutputBoundary.addWaypointChangeListener(mapView);
+        mapInteractor = new MapInteractor(routeShapeDataAccessInterface, mapOutputBoundary);
+
+        MapController controller = new MapController(mapInteractor);
+        mapView.setMapController(controller);
         return this;
     }
 
@@ -181,8 +204,8 @@ public class AppBuilder extends JFrame {
                 findNearestRouteViewModel);
         // TODO: use DAO, this is tempdata
         final FindNearestRouteInputBoundary findNearestRouteInteractor = new FindNearestRouteInteractor(
-                busDataAccessObject
-        , findNearestRouteOutputBoundary);
+                busDataAccessObject, findNearestRouteOutputBoundary, searchByRouteInputBoundary);
+        mapInteractor.setFindNearestRouteOutputBoundary(findNearestRouteOutputBoundary);
 
         FindNearestRouteController findNearestRouteController
                 = new FindNearestRouteController(findNearestRouteInteractor);
@@ -215,7 +238,8 @@ public class AppBuilder extends JFrame {
     public AppBuilder addAlertsUseCase() {
         alertsViewModel = new AlertsViewModel();
         final AlertsOutputBoundary presenter = new AlertsPresenter(alertsViewModel);
-        final AlertsInputBoundary interactor = new AlertsInteractor(new AlertDataBaseAPI(), presenter);
+        final AlertsInputBoundary interactor = new AlertsInteractor(new AlertDataBaseAPI(), presenter,
+                searchByRouteInputBoundary);
         alertsController = new AlertsController(interactor);
         return this;
     }
@@ -234,8 +258,9 @@ public class AppBuilder extends JFrame {
         searchByRouteViewModel = new SearchByRouteViewModel();
         SearchByRouteGateway gateway = new SearchByRouteGatewayImpl(new BusDataAccessObject());
         SearchByRoutePresenter presenter = new SearchByRoutePresenter(searchByRouteViewModel);
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
-        searchByRouteController = new SearchByRouteController(interactor);
+        searchByRouteInputBoundary = new SearchByRouteInteractor(gateway, presenter,
+                routeShapeDataAccessInterface, mapInteractor);
+        searchByRouteController = new SearchByRouteController(searchByRouteInputBoundary);
         return this;
     }
 
@@ -252,7 +277,8 @@ public class AppBuilder extends JFrame {
         busScheduleViewModel = new BusScheduleViewModel();
         BusScheduleGateway busScheduleGateway = new BusScheduleGatewayImpl(new BusDataBaseAPI());
         final BusScheduleOutputBoundary presenter = new BusSchedulePresenter(busScheduleViewModel);
-        final BusScheduleInputBoundary interactor = new BusScheduleInteractor(busScheduleGateway, presenter);
+        final BusScheduleInputBoundary interactor = new BusScheduleInteractor(busScheduleGateway, presenter,
+                searchByRouteInputBoundary);
         busScheduleController = new BusScheduleController(interactor);
         return this;
     }
@@ -269,7 +295,8 @@ public class AppBuilder extends JFrame {
     public AppBuilder addOccupancyUseCase() {
         occupancyViewModel = new OccupancyViewModel();
         final OccupancyOutputBoundary presenter = new OccupancyPresenter(occupancyViewModel);
-        final OccupancyInputBoundary interactor = new OccupancyInteractor(new BusDataBaseAPI(), presenter);
+        final OccupancyInputBoundary interactor = new OccupancyInteractor(new BusDataBaseAPI(), presenter,
+                searchByRouteInputBoundary);
         occupancyController = new OccupancyController(interactor);
         return this;
     }
@@ -287,7 +314,7 @@ public class AppBuilder extends JFrame {
 
     public JFrame build() {
         final JFrame app = new JFrame(TITLE);
-        app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        app.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         // Create a container with BorderLayout to host toolbar + cards
         JPanel root = new JPanel(new BorderLayout());
@@ -375,5 +402,16 @@ public class AppBuilder extends JFrame {
         toolBar.add(themeNum);
 
         return toolBar;
+    }
+
+    public void saveConfig() {
+        try {
+            PrintWriter writer = new PrintWriter("themeConfig.txt", "UTF-8");
+            writer.println(currentThemeIndex);
+            writer.close();
+        }
+        catch (IOException e) {
+            System.err.println("Error with output file.");
+        }
     }
 }

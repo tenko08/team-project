@@ -3,18 +3,27 @@ package use_case.search_by_route;
 import entities.Bus;
 import entities.Route;
 import interface_adapter.search_by_route.SearchByRouteGateway;
+import use_case.map.MapInputBoundary;
+import use_case.map.RouteShapeDataAccessInterface;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class SearchByRouteInteractor implements SearchByRouteInputBoundary {
     private final SearchByRouteGateway searchByRouteGateway;
     private final SearchByRouteOutputBoundary outputBoundary;
+    private final RouteShapeDataAccessInterface routeShapeDataAccess;
+    private final MapInputBoundary mapInputBoundary;
 
     public SearchByRouteInteractor(SearchByRouteGateway searchByRouteGateway,
-                                   SearchByRouteOutputBoundary outputBoundary) {
+                                   SearchByRouteOutputBoundary outputBoundary,
+                                   RouteShapeDataAccessInterface routeShapeDataAccessInterface,
+                                   MapInputBoundary mapInputBoundary) {
         this.searchByRouteGateway = searchByRouteGateway;
         this.outputBoundary = outputBoundary;
+        this.routeShapeDataAccess = routeShapeDataAccessInterface;
+        this.mapInputBoundary = mapInputBoundary;
     }
 
     @Override
@@ -50,9 +59,17 @@ public class SearchByRouteInteractor implements SearchByRouteInputBoundary {
                 } else {
                     outputBoundary.prepareSuccessView(outputData);
                 }
+                mapInputBoundary.showRoute(routeNumber);
             } else {
-                String errorMessage = (String) result.getOrDefault("message", "Route not found");
-                outputBoundary.prepareFailView(errorMessage);
+                int id = Integer.parseInt(routeNumber);
+                if (routeShapeDataAccess.hasRoute(id)) {
+                    mapInputBoundary.showRoute(routeNumber);
+                    outputBoundary.prepareFailView("No buses running at this time.");
+                }
+                else {
+                    String errorMessage = (String) result.getOrDefault("message", "Route not found");
+                    outputBoundary.prepareFailView(errorMessage);
+                }
             }
 
         } catch (Exception e) {

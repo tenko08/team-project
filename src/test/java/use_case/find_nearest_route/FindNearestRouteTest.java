@@ -4,6 +4,7 @@ import entities.BusStop;
 import entities.Position;
 import entities.Route;
 import org.junit.Test;
+import org.jxmapviewer.viewer.GeoPosition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,9 @@ public class FindNearestRouteTest {
         public void prepareFailView(String error) {
             this.failMessage = error;
         }
+
+        @Override
+        public void setCursorWaypoint(GeoPosition cursorWaypoint) { return;}
 
         public FindNearestRouteOutputData getSuccessData() {
             return successData;

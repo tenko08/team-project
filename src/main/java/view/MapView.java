@@ -2,29 +2,47 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import javax.swing.JPanel;
+
+import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 
+import interface_adapter.map.MapController;
 import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.cache.FileBasedLocalCache;
 import org.jxmapviewer.input.CenterMapListener;
 import org.jxmapviewer.input.PanKeyListener;
 import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
+import org.jxmapviewer.painter.Painter;
+import org.jxmapviewer.painter.CompoundPainter;
 import org.jxmapviewer.viewer.DefaultTileFactory;
+import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import interface_adapter.map.MapViewModel;
-import interface_adapter.map.SelectionAdapter;
+import org.jxmapviewer.viewer.WaypointPainter;
 
-public class MapView extends JPanel {
+public class MapView extends JPanel implements PropertyChangeListener {
     private final String viewName = "map";
     private final MapViewModel mapViewModel;
+    private MapController mapController = null;
     private JXMapViewer mapViewer;
     private TileFactoryInfo info;
     private DefaultTileFactory tileFactory;
+    private WaypointPainter busIconPainter = new WaypointPainter();
+    private WaypointPainter cursorWaypointPainter = new WaypointPainter();
+    private List<Painter<JXMapViewer>> painters = new ArrayList<>();
 
     public MapView(MapViewModel mapViewModel) {
+
         this.mapViewModel = mapViewModel;
         setLayout(new BorderLayout());
         mapViewer = new JXMapViewer();
@@ -33,6 +51,9 @@ public class MapView extends JPanel {
         tileFactory = new DefaultTileFactory(info);
         tileFactory.setUserAgent("TTC Map Viewer/1.0 (contact: michaeld.kim@mail.utoronto.ca)");
         mapViewer.setTileFactory(tileFactory);
+
+        File cacheDir = new File(System.getProperty("user.home") + File.separator + ".jxmapviewer2");
+        tileFactory.setLocalCache(new FileBasedLocalCache(cacheDir, false));
 
         // Use 8 threads in parallel to load the tiles
         tileFactory.setThreadPoolSize(8);
@@ -53,10 +74,8 @@ public class MapView extends JPanel {
 
         mapViewer.addKeyListener(new PanKeyListener(mapViewer));
 
-        // Add a selection painter
-        SelectionAdapter sa = new SelectionAdapter(mapViewer);
-        mapViewer.addMouseListener(sa);
-        mapViewer.addMouseMotionListener(sa);
+        busIconPainter.setRenderer(new FancyWaypointRenderer());
+        mapViewer.setOverlayPainter(busIconPainter);
 
         // Ensure the map view fills available space
         add(mapViewer, BorderLayout.CENTER);
@@ -69,4 +88,38 @@ public class MapView extends JPanel {
     }
 
     public String getViewName() { return viewName; }
+
+    public void setMapController(MapController controller) {
+        this.mapController = controller;
+        mapController.setMapViewer(mapViewer);
+        mapViewer.addMouseListener(mapController);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("route")) {
+            painters = new ArrayList<>();
+            busIconPainter.setWaypoints(mapViewModel.getBusLocations());
+            List<List<GeoPosition>> shapes = mapViewModel.getRouteShapePoints();
+            for (List shape : shapes) {
+                painters.add(new RoutePainter(shape));
+            }
+            painters.add(busIconPainter);
+        }
+        else if (evt.getPropertyName().equals("cursorWaypoint")) {
+            Set s = cursorWaypointPainter.getWaypoints();
+            if (s.isEmpty()) {
+                s = new HashSet();
+                s.add(mapViewModel.getCursorWaypoint());
+                cursorWaypointPainter.setWaypoints(s);
+                painters.add(cursorWaypointPainter);
+            }
+            else {
+                s = new HashSet();
+                cursorWaypointPainter.setWaypoints(s);
+            }
+        }
+        CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(painters);
+        mapViewer.setOverlayPainter(painter);
+    }
 }
