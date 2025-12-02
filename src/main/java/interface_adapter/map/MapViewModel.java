@@ -15,7 +15,7 @@ public class MapViewModel extends ViewModel<MapState> {
     public static final double LON = -79.38;
     public GeoPosition toronto = new GeoPosition(LAT, LON);
     private Set<Waypoint> busLocations = null;
-    private List<GeoPosition> routeShapePoints = null;
+    private List<List<GeoPosition>> routeShapePoints = null;
 
     public MapViewModel() {
         super("map");
@@ -32,9 +32,9 @@ public class MapViewModel extends ViewModel<MapState> {
         this.busLocations = busLocations;
     }
 
-    public List<GeoPosition> getRouteShapePoints() { return routeShapePoints; }
+    public List<List<GeoPosition>> getRouteShapePoints() { return routeShapePoints; }
 
-    public void setRouteShapePoints(List<GeoPosition> routeShapePoints) {
+    public void setRouteShapePoints(List<List<GeoPosition>> routeShapePoints) {
         this.routeShapePoints = routeShapePoints;
     }
 }

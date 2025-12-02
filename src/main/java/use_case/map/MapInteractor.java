@@ -27,8 +27,13 @@ public class MapInteractor implements MapInputBoundary {
     public void showRoute(SearchByRouteOutputData searchByRouteOutputData) {
         List<Bus> buses = searchByRouteOutputData.getBuses();
         ArrayList<GeoPosition> busGeoPositions = new ArrayList<>();
-        ArrayList<GeoPosition> routeShapePoints = routeShapeDataAccessObject.getShapeById(
-                searchByRouteOutputData.getRoute().getRouteNumber()).getPoints();
+        int routeNumber = searchByRouteOutputData.getRoute().getRouteNumber();
+        List<String> branches = routeShapeDataAccessObject.getListOfBranches(routeNumber);
+        List<List<GeoPosition>> routeShapePoints = new ArrayList();
+        for (int i = 0; i < branches.size(); i++) {
+            routeShapePoints.add(routeShapeDataAccessObject.getShapeById(
+                    routeNumber + "-" + branches.get(i)).getPoints());
+        }
         if (!buses.isEmpty()) {
             for (Bus bus: buses) {
                 busGeoPositions.add(PosToGeoPos.toGeoPosition(bus.getPosition()));

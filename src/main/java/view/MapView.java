@@ -20,6 +20,7 @@ import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
 import org.jxmapviewer.painter.Painter;
 import org.jxmapviewer.painter.CompoundPainter;
 import org.jxmapviewer.viewer.DefaultTileFactory;
+import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import interface_adapter.map.MapViewModel;
@@ -86,10 +87,12 @@ public class MapView extends JPanel implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         busIconPainter.setWaypoints(mapViewModel.getBusLocations());
-        RoutePainter routePainter = new RoutePainter(mapViewModel.getRouteShapePoints());
         List<Painter<JXMapViewer>> painters = new ArrayList<>();
-        painters.add(routePainter);
         painters.add(busIconPainter);
+        List<List<GeoPosition>> shapes = mapViewModel.getRouteShapePoints();
+        for (List shape : shapes) {
+            painters.add(new RoutePainter(shape));
+        }
         CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(painters);
         mapViewer.setOverlayPainter(painter);
     }

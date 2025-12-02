@@ -1,7 +1,6 @@
 package interface_adapter.map;
 
 import entities.BusIcon;
-import org.jxmapviewer.viewer.DefaultWaypoint;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.Waypoint;
 import use_case.map.MapOutputData;
@@ -30,14 +29,14 @@ public class MapPresenter implements MapOutputBoundary {
         for (GeoPosition pos : b) {
             busLocations.add(new BusIcon(pos));
         }
-        fireWaypointsChanged(new HashSet<Waypoint>(busLocations), mapOutputData.getRoutes());
+        fireWaypointsChanged(new HashSet<Waypoint>(busLocations), mapOutputData.getRouteShapePoints());
     }
 
     public void addWaypointChangeListener(PropertyChangeListener listener) {
         this.support.addPropertyChangeListener(listener);
     }
 
-    public void fireWaypointsChanged(Set<Waypoint> newBusLocations, List<GeoPosition> newRouteShapePoints) {
+    public void fireWaypointsChanged(Set<Waypoint> newBusLocations, List<List<GeoPosition>> newRouteShapePoints) {
         Set<Waypoint> oldWaypoints = this.mapViewModel.getBusLocations();
         mapViewModel.setBusLocations(newBusLocations);
         mapViewModel.setRouteShapePoints(newRouteShapePoints);
