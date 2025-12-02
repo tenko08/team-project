@@ -28,7 +28,6 @@ import javax.swing.WindowConstants;
 import api.AlertDataBaseAPI;
 import api.BusDataBaseAPI;
 import data_access.BusDataAccessObject;
-import data_access.CacheAccessObject;
 import data_access.RouteShapeDataAccessObject;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.alerts.AlertsController;
@@ -85,7 +84,6 @@ public class AppBuilder extends JFrame {
     ViewManager viewManager = new ViewManager(cardPanel, cardLayout, viewManagerModel);
 
     // DAO using file cache
-    final MapDataAccessInterface cacheAccessObject = new CacheAccessObject();
     final BusDataAccessObject busDataAccessObject = new BusDataAccessObject();
     final RouteShapeDataAccessInterface routeShapeDataAccessInterface = new RouteShapeDataAccessObject();
 
@@ -172,8 +170,7 @@ public class AppBuilder extends JFrame {
     public AppBuilder addMapUseCase() {
         final MapOutputBoundary mapOutputBoundary = new MapPresenter(mapViewModel);
         mapOutputBoundary.addWaypointChangeListener(mapView);
-        mapInteractor = new MapInteractor(cacheAccessObject, busDataAccessObject, routeShapeDataAccessInterface,
-                mapOutputBoundary);
+        mapInteractor = new MapInteractor(routeShapeDataAccessInterface, mapOutputBoundary);
 
         MapController controller = new MapController(mapInteractor);
         mapView.setMapController(controller);

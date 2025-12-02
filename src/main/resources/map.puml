@@ -1,0 +1,29 @@
+@startuml
+
+class MapView
+class MapController
+class MapInputBoundary
+class MapInteractor
+class MapOutputBoundary
+class MapPresenter
+class MapViewModel
+class MapInputData
+class MapOutputData
+class BusIcon
+class RouteShape
+
+MapInputBoundary <|.. MapInteractor
+MapOutputBoundary <|.. MapPresenter
+
+MapView --> MapViewModel
+MapController --> MapInputData
+MapController --> MapInputBoundary
+MapInteractor --> MapOutputBoundary
+MapInteractor --> MapInputData
+MapInteractor --> MapOutputData
+MapInteractor --> BusIcon
+MapInteractor --> RouteShape
+MapView --> MapController
+MapPresenter --> MapViewModel
+
+@enduml

@@ -19,14 +19,13 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.opencsv.CSVReader;
-import use_case.map.MapDataAccessInterface;
 import use_case.search_by_route.SearchByRouteDataAccessInterface;
 
 import java.io.FileReader;
 import java.util.List;
 
 
-public class BusDataAccessObject implements FindNearestRouteDataAccessInterface, SearchByRouteDataAccessInterface, MapDataAccessInterface {
+public class BusDataAccessObject implements FindNearestRouteDataAccessInterface, SearchByRouteDataAccessInterface{
     private static final String API_URL_VEHICLES = "https://bustime.ttc.ca/gtfsrt/vehicles";
 
         private static final String API_URL_TRIPS = "https://bustime.ttc.ca/gtfsrt/trips";
@@ -37,13 +36,6 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface,
 
     private final Request requestTrips = new Request.Builder().url(API_URL_TRIPS).build();
 
-    @Override
-    public File getCacheDir() {
-        // Return cache directory similar to CacheAccessObject
-        return new File(System.getProperty("user.home") + File.separator + ".jxmapviewer2");
-    }
-
-    @Override
     public List<Bus> getAllBuses() {
         final OkHttpClient client = new OkHttpClient();
 

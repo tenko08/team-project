@@ -11,19 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapInteractor implements MapInputBoundary {
-    private final MapDataAccessInterface cacheDataAccessObject;
-    private final MapDataAccessInterface busDataAccessObject;
     private final RouteShapeDataAccessInterface routeShapeDataAccessObject;
     private final MapOutputBoundary mapPresenter;
     private FindNearestRouteOutputBoundary findNearestRouteOutputBoundary;
     private JXMapViewer mapViewer;
     private boolean cursorWaypointExists = false;
 
-    public MapInteractor(MapDataAccessInterface cacheDataAccessObject, MapDataAccessInterface busDataAccessObject,
-                         RouteShapeDataAccessInterface routeShapeDataAccessInterface,
+    public MapInteractor(RouteShapeDataAccessInterface routeShapeDataAccessInterface,
                          MapOutputBoundary mapOutputBoundary) {
-        this.cacheDataAccessObject = cacheDataAccessObject;
-        this.busDataAccessObject = busDataAccessObject;
         this.routeShapeDataAccessObject = routeShapeDataAccessInterface;
         this.mapPresenter = mapOutputBoundary;
     }

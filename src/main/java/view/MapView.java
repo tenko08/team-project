@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +16,7 @@ import javax.swing.event.MouseInputListener;
 
 import interface_adapter.map.MapController;
 import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.cache.FileBasedLocalCache;
 import org.jxmapviewer.input.CenterMapListener;
 import org.jxmapviewer.input.PanKeyListener;
 import org.jxmapviewer.input.PanMouseInputListener;
@@ -49,6 +51,9 @@ public class MapView extends JPanel implements PropertyChangeListener {
         tileFactory = new DefaultTileFactory(info);
         tileFactory.setUserAgent("TTC Map Viewer/1.0 (contact: michaeld.kim@mail.utoronto.ca)");
         mapViewer.setTileFactory(tileFactory);
+
+        File cacheDir = new File(System.getProperty("user.home") + File.separator + ".jxmapviewer2");
+        tileFactory.setLocalCache(new FileBasedLocalCache(cacheDir, false));
 
         // Use 8 threads in parallel to load the tiles
         tileFactory.setThreadPoolSize(8);
