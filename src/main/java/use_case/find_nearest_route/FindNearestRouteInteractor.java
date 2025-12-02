@@ -3,6 +3,8 @@ package use_case.find_nearest_route;
 import entities.BusStop;
 import entities.Position;
 import entities.Route;
+import use_case.search_by_route.SearchByRouteInputBoundary;
+import use_case.search_by_route.SearchByRouteInputData;
 
 import java.util.List;
 
@@ -10,11 +12,21 @@ public class FindNearestRouteInteractor implements FindNearestRouteInputBoundary
 
     private final FindNearestRouteDataAccessInterface dataAccess;
     private final FindNearestRouteOutputBoundary presenter;
+    private final SearchByRouteInputBoundary searchByRouteInputBoundary;
 
     public FindNearestRouteInteractor(FindNearestRouteDataAccessInterface dataAccess,
-                                         FindNearestRouteOutputBoundary presenter) {
+                                      FindNearestRouteOutputBoundary presenter) {
         this.dataAccess = dataAccess;
         this.presenter = presenter;
+        this.searchByRouteInputBoundary = null;
+    }
+
+    public FindNearestRouteInteractor(FindNearestRouteDataAccessInterface dataAccess,
+                                      FindNearestRouteOutputBoundary presenter,
+                                      SearchByRouteInputBoundary searchByRouteInputBoundary) {
+        this.dataAccess = dataAccess;
+        this.presenter = presenter;
+        this.searchByRouteInputBoundary = searchByRouteInputBoundary;
     }
 
     @Override
@@ -59,5 +71,6 @@ public class FindNearestRouteInteractor implements FindNearestRouteInputBoundary
                 );
 
         presenter.prepareSuccessView(outputData);
+        searchByRouteInputBoundary.execute(new SearchByRouteInputData(String.valueOf(closestRoute.getRouteNumber())));
     }
 }

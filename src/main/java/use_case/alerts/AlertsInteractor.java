@@ -2,6 +2,8 @@ package use_case.alerts;
 
 import api.AlertDataBase;
 import entities.Alert;
+import use_case.search_by_route.SearchByRouteInputBoundary;
+import use_case.search_by_route.SearchByRouteInputData;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,10 +11,19 @@ import java.util.stream.Collectors;
 public class AlertsInteractor implements AlertsInputBoundary {
     private final AlertDataBase alertDataBase;
     private final AlertsOutputBoundary presenter;
+    private final SearchByRouteInputBoundary searchByRouteInputBoundary;
 
     public AlertsInteractor(AlertDataBase alertDataBase, AlertsOutputBoundary presenter) {
         this.alertDataBase = alertDataBase;
         this.presenter = presenter;
+        this.searchByRouteInputBoundary = null;
+    }
+
+    public AlertsInteractor(AlertDataBase alertDataBase, AlertsOutputBoundary presenter,
+                            SearchByRouteInputBoundary searchByRouteInputBoundary) {
+        this.alertDataBase = alertDataBase;
+        this.presenter = presenter;
+        this.searchByRouteInputBoundary = searchByRouteInputBoundary;
     }
 
     @Override
@@ -45,6 +56,7 @@ public class AlertsInteractor implements AlertsInputBoundary {
                     routeId,
                     stopId
             ));
+            searchByRouteInputBoundary.execute(new SearchByRouteInputData(inputData.getRouteId()));
         } catch (Exception e) {
             presenter.present(new AlertsOutputData(false, e.getMessage(), List.of()));
         }

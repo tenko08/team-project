@@ -14,6 +14,7 @@ import use_case.find_nearest_route.FindNearestRouteDataAccessInterface;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -254,7 +255,8 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface,
 
     private List<String> getAllRouteIds() throws IOException, CsvException {
         List<String> routeIds = new ArrayList<>();
-        CSVReader reader = new CSVReader(new FileReader("src/main/java/data/routes.csv"));
+        URL resource = getClass().getResource("/routes.csv");
+        CSVReader reader = new CSVReader(new FileReader(resource.getFile()));
         List<String[]> rows = reader.readAll();
 
         for (int i = 1; i < rows.size(); i++) {
@@ -269,7 +271,8 @@ public class BusDataAccessObject implements FindNearestRouteDataAccessInterface,
     // Returns a hashmap mapping the butStopId to the BusStop object for better lookup
     private HashMap<Integer, BusStop> getAllBusStops() throws IOException, CsvException {
         HashMap<Integer, BusStop> busStopList = new HashMap<>();
-        CSVReader reader = new CSVReader(new FileReader("src/main/java/data/stops.csv"));
+        URL resource = getClass().getResource("/stops.csv");
+        CSVReader reader = new CSVReader(new FileReader(resource.getFile()));
         List<String[]> rows = reader.readAll();
 
         for (int i = 1; i < rows.size(); i++) {

@@ -1,17 +1,10 @@
 package app;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-
-import entities.Bus;
-import entities.BusStop;
-import entities.Position;
-import entities.Route;
-import entities.Trip;
-
 
 public class MainFrame {
 
@@ -22,12 +15,12 @@ public class MainFrame {
             JFrame app = appBuilder
                     .addMapView()
                     .addMapUseCase()
+                    .addSearchByRouteUseCase()
+                    .addSearchByRouteView()
                     .addFindNearestRouteView()
                     .addFindNearestRouteUseCase()
                     .addLandingView()
                     .addAlertsView()
-                    .addSearchByRouteUseCase()
-                    .addSearchByRouteView()
                     .addBusScheduleUseCase()
                     .addBusScheduleView()
                     .addOccupancyUseCase()
@@ -37,6 +30,17 @@ public class MainFrame {
             app.pack();
             app.setLocationRelativeTo(null);
             app.setVisible(true);
+
+            app.addWindowListener(new WindowAdapter() {
+                //I skipped unused callbacks for readability
+
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    appBuilder.saveConfig();
+                    app.setVisible(false);
+                    app.dispose();
+                }
+            });
         });
-        }
+    }
 }
