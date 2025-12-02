@@ -205,7 +205,8 @@ public class AppBuilder extends JFrame {
         // TODO: use DAO, this is tempdata
         final FindNearestRouteInputBoundary findNearestRouteInteractor = new FindNearestRouteInteractor(
                 busDataAccessObject, findNearestRouteOutputBoundary, searchByRouteInputBoundary);
-        mapInteractor.setFindNearestRouteOutputBoundary(findNearestRouteOutputBoundary);
+        mapInteractor.setFindNearestRouteBoundaries(findNearestRouteOutputBoundary, findNearestRouteInteractor);
+        findNearestRouteInteractor.setMapInteractor(mapInteractor);
 
         FindNearestRouteController findNearestRouteController
                 = new FindNearestRouteController(findNearestRouteInteractor);

@@ -39,6 +39,7 @@ public class MainFrame {
                     appBuilder.saveConfig();
                     app.setVisible(false);
                     app.dispose();
+                    System.exit(0);
                 }
             });
         });

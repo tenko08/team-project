@@ -3,9 +3,12 @@ package use_case.map;
 import api.BusDataBase;
 import api.BusDataBaseAPI;
 import entities.Bus;
+import entities.Position;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;
 import interface_adapter.PosToGeoPos;
+import use_case.find_nearest_route.FindNearestRouteInputBoundary;
+import use_case.find_nearest_route.FindNearestRouteInputData;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
 
 
@@ -19,6 +22,7 @@ public class MapInteractor implements MapInputBoundary {
     private final RouteShapeDataAccessInterface routeShapeDataAccessObject;
     private final MapOutputBoundary mapPresenter;
     private FindNearestRouteOutputBoundary findNearestRouteOutputBoundary;
+    private FindNearestRouteInputBoundary findNearestRouteInputBoundary;
     private JXMapViewer mapViewer;
     private boolean cursorWaypointExists = false;
     private BusDataBase busDatabase = new BusDataBaseAPI();
@@ -48,9 +52,11 @@ public class MapInteractor implements MapInputBoundary {
         ArrayList<GeoPosition> busGeoPositions = new ArrayList<>();
         List<String> branches = routeShapeDataAccessObject.getListOfBranches(routeNo);
         List<List<GeoPosition>> routeShapePoints = new ArrayList();
-        for (int i = 0; i < branches.size(); i++) {
-            routeShapePoints.add(routeShapeDataAccessObject.getShapeById(
-                    String.valueOf(routeNo) + "-" + branches.get(i)).getPoints());
+        if (branches != null) {
+            for (int i = 0; i < branches.size(); i++) {
+                routeShapePoints.add(routeShapeDataAccessObject.getShapeById(
+                        String.valueOf(routeNo) + "-" + branches.get(i)).getPoints());
+            }
         }
         if (!buses.isEmpty()) {
             for (Bus bus: buses) {
@@ -73,13 +79,17 @@ public class MapInteractor implements MapInputBoundary {
             mapPresenter.setClickPosition(geoPos);
             mapPresenter.prepareCursorWaypointView(geoPos);
             findNearestRouteOutputBoundary.setCursorWaypoint(geoPos);
+            Position p = new Position(geoPos.getLatitude(), geoPos.getLongitude());
+            FindNearestRouteInputData findNearestRouteInputData = new FindNearestRouteInputData(p);
+            findNearestRouteInputBoundary.execute(findNearestRouteInputData);
             cursorWaypointExists = true;
         }
     }
 
     public void setMapViewer(JXMapViewer mapViewer) { this.mapViewer = mapViewer; }
 
-    public void setFindNearestRouteOutputBoundary(FindNearestRouteOutputBoundary findNearestRoutePresenter) {
+    public void setFindNearestRouteBoundaries(FindNearestRouteOutputBoundary findNearestRoutePresenter, FindNearestRouteInputBoundary findNearestRouteInputBoundary) {
         this.findNearestRouteOutputBoundary = findNearestRoutePresenter;
+        this.findNearestRouteInputBoundary =  findNearestRouteInputBoundary;
     }
 }
