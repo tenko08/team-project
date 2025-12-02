@@ -5,6 +5,8 @@ import entities.Position;
 import entities.Route;
 import interface_adapter.search_by_route.SearchByRouteGateway;
 import org.junit.Test;
+import use_case.map.MapInputBoundary;
+import use_case.map.RouteShapeDataAccessInterface;
 
 import java.util.*;
 
@@ -30,7 +32,7 @@ public class SearchByRouteInteractorTest {
             if (exceptionToThrow != null) {
                 throw exceptionToThrow;
             }
-            return responseToReturn;
+            return responseToReturn != null ? responseToReturn : new HashMap<>();
         }
     }
 
@@ -95,6 +97,70 @@ public class SearchByRouteInteractorTest {
         }
     }
 
+    // Mock RouteShapeDataAccessInterface
+    private static class RouteShapeDataAccessMock implements RouteShapeDataAccessInterface {
+        private boolean hasRouteResult = false;
+        private java.util.ArrayList<String> branchesResult = new java.util.ArrayList<>();
+
+        public void setHasRouteResult(boolean result) {
+            this.hasRouteResult = result;
+        }
+
+        public void setBranchesResult(java.util.ArrayList<String> branches) {
+            this.branchesResult = branches;
+        }
+
+        @Override
+        public entities.RouteShape getShapeById(String routeId) {
+            return null;
+        }
+
+        @Override
+        public boolean hasRoute(int id) {
+            return hasRouteResult;
+        }
+
+        @Override
+        public java.util.ArrayList<String> getListOfBranches(int routeNumber) {
+            return branchesResult;
+        }
+    }
+
+    // Mock MapInputBoundary
+    private static class MapInputBoundaryMock implements MapInputBoundary {
+        private String lastRouteShown;
+        private boolean showRouteCalled = false;
+
+        public String getLastRouteShown() {
+            return lastRouteShown;
+        }
+
+        public boolean isShowRouteCalled() {
+            return showRouteCalled;
+        }
+
+        @Override
+        public void showRoute(String routeNumber) {
+            this.lastRouteShown = routeNumber;
+            this.showRouteCalled = true;
+        }
+
+        @Override
+        public void markWaypoint(use_case.map.MapInputData mapInputData) {
+            // Not used in these tests
+        }
+
+        @Override
+        public void setMapViewer(org.jxmapviewer.JXMapViewer mapViewer) {
+            // Not used in these tests
+        }
+
+        @Override
+        public void setFindNearestRouteOutputBoundary(use_case.find_nearest_route.FindNearestRouteOutputBoundary findNearestRoutePresenter) {
+            // Not used in these tests
+        }
+    }
+
     private static Bus createTestBus(int id, double lat, double lon) {
         Position position = new Position(lat, lon, 45.0f, 10.0f);
         return new Bus(id, position, "MANY_SEATS_AVAILABLE");
@@ -105,7 +171,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Route route = new Route(36);
         List<Bus> buses = Arrays.asList(
@@ -138,6 +206,8 @@ public class SearchByRouteInteractorTest {
         assertEquals(buses, outputData.getBuses());
         assertNull(outputData.getErrorMessage());
         assertFalse(outputData.isCached());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("36", mapInputBoundary.getLastRouteShown());
     }
 
     @Test
@@ -145,7 +215,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Route route = new Route(501);
         List<Bus> buses = Arrays.asList(createTestBus(2001, 43.6500, -79.3800));
@@ -174,6 +246,8 @@ public class SearchByRouteInteractorTest {
         assertEquals(route, outputData.getRoute());
         assertEquals(buses, outputData.getBuses());
         assertTrue(outputData.isCached());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("501", mapInputBoundary.getLastRouteShown());
     }
 
     @Test
@@ -181,7 +255,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Route route = new Route(99);
         List<Bus> emptyBuses = new ArrayList<>();
@@ -207,6 +283,8 @@ public class SearchByRouteInteractorTest {
         assertEquals(route, outputData.getRoute());
         assertNotNull(outputData.getBuses());
         assertEquals(0, outputData.getBuses().size());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("99", mapInputBoundary.getLastRouteShown());
     }
 
     @Test
@@ -214,7 +292,10 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        routeShapeDataAccess.setHasRouteResult(false);
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
@@ -232,6 +313,7 @@ public class SearchByRouteInteractorTest {
         assertFalse(presenter.isCachedViewCalled());
         assertTrue(presenter.isFailViewCalled());
         assertEquals("Route not found", presenter.getFailMessage());
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -239,7 +321,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         SearchByRouteInputData inputData = new SearchByRouteInputData("");
 
@@ -251,6 +335,7 @@ public class SearchByRouteInteractorTest {
         assertFalse(presenter.isCachedViewCalled());
         assertTrue(presenter.isFailViewCalled());
         assertEquals("Route number cannot be empty", presenter.getFailMessage());
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -258,7 +343,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         SearchByRouteInputData inputData = new SearchByRouteInputData(null);
 
@@ -270,6 +357,7 @@ public class SearchByRouteInteractorTest {
         assertFalse(presenter.isCachedViewCalled());
         assertTrue(presenter.isFailViewCalled());
         assertEquals("Route number cannot be empty", presenter.getFailMessage());
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -277,7 +365,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         SearchByRouteInputData inputData = new SearchByRouteInputData("   ");
 
@@ -289,6 +379,7 @@ public class SearchByRouteInteractorTest {
         assertFalse(presenter.isCachedViewCalled());
         assertTrue(presenter.isFailViewCalled());
         assertEquals("Route number cannot be empty", presenter.getFailMessage());
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -296,7 +387,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         gateway.setExceptionToThrow(new RuntimeException("Network error"));
 
@@ -311,6 +404,7 @@ public class SearchByRouteInteractorTest {
         assertTrue(presenter.isFailViewCalled());
         assertTrue(presenter.getFailMessage().contains("System error"));
         assertTrue(presenter.getFailMessage().contains("Network error"));
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -318,7 +412,10 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        routeShapeDataAccess.setHasRouteResult(false);
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Map<String, Object> response = new HashMap<>();
         // Missing "success" key
@@ -336,6 +433,7 @@ public class SearchByRouteInteractorTest {
         assertFalse(presenter.isCachedViewCalled());
         assertTrue(presenter.isFailViewCalled());
         assertEquals("Route not found", presenter.getFailMessage());
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -343,7 +441,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Route route = new Route(95);
         List<Bus> buses = Arrays.asList(
@@ -372,6 +472,8 @@ public class SearchByRouteInteractorTest {
         assertNotNull(outputData);
         assertEquals(4, outputData.getBuses().size());
         assertEquals(route, outputData.getRoute());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("95", mapInputBoundary.getLastRouteShown());
     }
 
     @Test
@@ -379,7 +481,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Route route = new Route(29);
         Bus busWithoutPosition = new Bus(4001, null, "FEW_SEATS_AVAILABLE");
@@ -404,29 +508,8 @@ public class SearchByRouteInteractorTest {
         assertNotNull(outputData);
         assertEquals(1, outputData.getBuses().size());
         assertNull(outputData.getBuses().get(0).getPosition());
-    }
-
-    @Test
-    public void testExecuteFailureWithCustomErrorMessage() {
-        // Arrange
-        SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
-        SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", "Invalid route format");
-
-        gateway.setResponse(response);
-
-        SearchByRouteInputData inputData = new SearchByRouteInputData("abc");
-
-        // Act
-        interactor.execute(inputData);
-
-        // Assert
-        assertTrue(presenter.isFailViewCalled());
-        assertEquals("Invalid route format", presenter.getFailMessage());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("29", mapInputBoundary.getLastRouteShown());
     }
 
     @Test
@@ -434,7 +517,10 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        routeShapeDataAccess.setHasRouteResult(false);
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
@@ -450,6 +536,7 @@ public class SearchByRouteInteractorTest {
         // Assert
         assertTrue(presenter.isFailViewCalled());
         assertEquals("Route not found", presenter.getFailMessage()); // Default message
+        assertFalse(mapInputBoundary.isShowRouteCalled());
     }
 
     @Test
@@ -457,7 +544,9 @@ public class SearchByRouteInteractorTest {
         // Arrange
         SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
         SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
-        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter);
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
 
         Route route = new Route(32);
 
@@ -479,6 +568,36 @@ public class SearchByRouteInteractorTest {
         SearchByRouteOutputData outputData = presenter.getSuccessData();
         assertNotNull(outputData);
         assertNull(outputData.getBuses());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("32", mapInputBoundary.getLastRouteShown());
+    }
+
+    @Test
+    public void testExecuteFailureRouteExistsButNoBuses() {
+        // Arrange
+        SearchByRouteGatewayMock gateway = new SearchByRouteGatewayMock();
+        SearchByRoutePresenterMock presenter = new SearchByRoutePresenterMock();
+        RouteShapeDataAccessMock routeShapeDataAccess = new RouteShapeDataAccessMock();
+        routeShapeDataAccess.setHasRouteResult(true); // Route exists but no buses
+        MapInputBoundaryMock mapInputBoundary = new MapInputBoundaryMock();
+        SearchByRouteInteractor interactor = new SearchByRouteInteractor(gateway, presenter, routeShapeDataAccess, mapInputBoundary);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", "No buses found");
+
+        gateway.setResponse(response);
+
+        SearchByRouteInputData inputData = new SearchByRouteInputData("36");
+
+        // Act
+        interactor.execute(inputData);
+
+        // Assert
+        assertTrue(presenter.isFailViewCalled());
+        assertEquals("No buses running at this time.", presenter.getFailMessage());
+        assertTrue(mapInputBoundary.isShowRouteCalled());
+        assertEquals("36", mapInputBoundary.getLastRouteShown());
     }
 }
 
