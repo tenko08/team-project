@@ -1,5 +1,6 @@
 package interface_adapter.find_nearest_route;
 
+import org.jxmapviewer.viewer.GeoPosition;
 import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
 import use_case.find_nearest_route.FindNearestRouteOutputData;
 
@@ -32,5 +33,9 @@ public class FindNearestRoutePresenter implements FindNearestRouteOutputBoundary
         final FindNearestRouteState findNearestRouteState = findNearestRouteViewModel.getState();
         findNearestRouteState.setSearchError(message);
         this.findNearestRouteViewModel.firePropertyChange();
+    }
+
+    public void setCursorWaypoint(GeoPosition cursorWaypoint) {
+        findNearestRouteViewModel.setCursorWaypoint(cursorWaypoint);
     }
 }

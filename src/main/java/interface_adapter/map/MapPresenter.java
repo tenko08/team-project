@@ -1,11 +1,13 @@
 package interface_adapter.map;
 
 import entities.BusIcon;
+import org.jxmapviewer.viewer.DefaultWaypoint;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.Waypoint;
 import use_case.map.MapOutputData;
 import use_case.map.MapOutputBoundary;
 
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -32,6 +34,16 @@ public class MapPresenter implements MapOutputBoundary {
         fireWaypointsChanged(new HashSet<Waypoint>(busLocations), mapOutputData.getRouteShapePoints());
     }
 
+    public void prepareCursorWaypointView(GeoPosition geoPosition) {
+        DefaultWaypoint cursorWaypoint = new DefaultWaypoint(geoPosition);
+        mapViewModel.setCursorWaypoint(cursorWaypoint);
+        this.support.firePropertyChange("cursorWaypoint", null, cursorWaypoint);
+    }
+
+    public void setClickPosition(GeoPosition clickPosition) {
+        mapViewModel.setClickPosition(clickPosition);
+    }
+
     public void addWaypointChangeListener(PropertyChangeListener listener) {
         this.support.addPropertyChangeListener(listener);
     }
@@ -40,6 +52,6 @@ public class MapPresenter implements MapOutputBoundary {
         Set<Waypoint> oldWaypoints = this.mapViewModel.getBusLocations();
         mapViewModel.setBusLocations(newBusLocations);
         mapViewModel.setRouteShapePoints(newRouteShapePoints);
-        this.support.firePropertyChange("waypoints updated", null, null);
+        this.support.firePropertyChange("route", null, null);
     }
 }

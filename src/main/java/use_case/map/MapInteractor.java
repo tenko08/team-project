@@ -1,8 +1,10 @@
 package use_case.map;
 
 import entities.Bus;
+import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoPosition;
 import interface_adapter.PosToGeoPos;
+import use_case.find_nearest_route.FindNearestRouteOutputBoundary;
 import use_case.search_by_route.SearchByRouteOutputData;
 
 import java.util.ArrayList;
@@ -13,6 +15,9 @@ public class MapInteractor implements MapInputBoundary {
     private final MapDataAccessInterface busDataAccessObject;
     private final RouteShapeDataAccessInterface routeShapeDataAccessObject;
     private final MapOutputBoundary mapPresenter;
+    private FindNearestRouteOutputBoundary findNearestRouteOutputBoundary;
+    private JXMapViewer mapViewer;
+    private boolean cursorWaypointExists = false;
 
     public MapInteractor(MapDataAccessInterface cacheDataAccessObject, MapDataAccessInterface busDataAccessObject,
                          RouteShapeDataAccessInterface routeShapeDataAccessInterface,
@@ -41,5 +46,26 @@ public class MapInteractor implements MapInputBoundary {
         }
         MapOutputData mapOutputData = new MapOutputData(busGeoPositions, routeShapePoints);
         mapPresenter.prepareRouteView(mapOutputData);
+    }
+
+    public void markWaypoint (MapInputData mapInputData) {
+        if (cursorWaypointExists) {
+            cursorWaypointExists = false;
+            mapPresenter.prepareCursorWaypointView(null);
+            findNearestRouteOutputBoundary.setCursorWaypoint(null);
+        }
+        else {
+            GeoPosition geoPos = mapViewer.convertPointToGeoPosition(mapInputData.getPoint());
+            mapPresenter.setClickPosition(geoPos);
+            mapPresenter.prepareCursorWaypointView(geoPos);
+            findNearestRouteOutputBoundary.setCursorWaypoint(geoPos);
+            cursorWaypointExists = true;
+        }
+    }
+
+    public void setMapViewer(JXMapViewer mapViewer) { this.mapViewer = mapViewer; }
+
+    public void setFindNearestRouteOutputBoundary(FindNearestRouteOutputBoundary findNearestRoutePresenter) {
+        this.findNearestRouteOutputBoundary = findNearestRoutePresenter;
     }
 }

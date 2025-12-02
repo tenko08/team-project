@@ -5,7 +5,9 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 import javax.swing.*;
@@ -34,6 +36,8 @@ public class MapView extends JPanel implements PropertyChangeListener {
     private TileFactoryInfo info;
     private DefaultTileFactory tileFactory;
     private WaypointPainter busIconPainter = new WaypointPainter();
+    private WaypointPainter cursorWaypointPainter = new WaypointPainter();
+    private List<Painter<JXMapViewer>> painters = new ArrayList<>();
 
     public MapView(MapViewModel mapViewModel) {
 
@@ -82,16 +86,33 @@ public class MapView extends JPanel implements PropertyChangeListener {
 
     public void setMapController(MapController controller) {
         this.mapController = controller;
+        mapController.setMapViewer(mapViewer);
+        mapViewer.addMouseListener(mapController);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        busIconPainter.setWaypoints(mapViewModel.getBusLocations());
-        List<Painter<JXMapViewer>> painters = new ArrayList<>();
-        painters.add(busIconPainter);
-        List<List<GeoPosition>> shapes = mapViewModel.getRouteShapePoints();
-        for (List shape : shapes) {
-            painters.add(new RoutePainter(shape));
+        if (evt.getPropertyName().equals("route")) {
+            painters = new ArrayList<>();
+            busIconPainter.setWaypoints(mapViewModel.getBusLocations());
+            painters.add(busIconPainter);
+            List<List<GeoPosition>> shapes = mapViewModel.getRouteShapePoints();
+            for (List shape : shapes) {
+                painters.add(new RoutePainter(shape));
+            }
+        }
+        else if (evt.getPropertyName().equals("cursorWaypoint")) {
+            Set s = cursorWaypointPainter.getWaypoints();
+            if (s.isEmpty()) {
+                s = new HashSet();
+                s.add(mapViewModel.getCursorWaypoint());
+                cursorWaypointPainter.setWaypoints(s);
+                painters.add(cursorWaypointPainter);
+            }
+            else {
+                s = new HashSet();
+                cursorWaypointPainter.setWaypoints(s);
+            }
         }
         CompoundPainter<JXMapViewer> painter = new CompoundPainter<JXMapViewer>(painters);
         mapViewer.setOverlayPainter(painter);

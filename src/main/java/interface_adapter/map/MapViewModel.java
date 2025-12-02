@@ -6,6 +6,7 @@ import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.jxmapviewer.viewer.Waypoint;
 
+import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.Set;
 
@@ -15,7 +16,9 @@ public class MapViewModel extends ViewModel<MapState> {
     public static final double LON = -79.38;
     public GeoPosition toronto = new GeoPosition(LAT, LON);
     private Set<Waypoint> busLocations = null;
+    private Waypoint cursorWaypoint;
     private List<List<GeoPosition>> routeShapePoints = null;
+    private GeoPosition clickPosition;
 
     public MapViewModel() {
         super("map");
@@ -37,4 +40,9 @@ public class MapViewModel extends ViewModel<MapState> {
     public void setRouteShapePoints(List<List<GeoPosition>> routeShapePoints) {
         this.routeShapePoints = routeShapePoints;
     }
+
+    public Waypoint getCursorWaypoint() { return cursorWaypoint; }
+    public void setCursorWaypoint(Waypoint cursorWaypoint) { this.cursorWaypoint = cursorWaypoint; }
+    public GeoPosition getClickPosition() { return clickPosition; }
+    public void setClickPosition(GeoPosition clickPosition) { this.clickPosition = clickPosition; }
 }
