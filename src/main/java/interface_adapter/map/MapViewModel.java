@@ -10,7 +10,7 @@ import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.Set;
 
-public class MapViewModel extends ViewModel<MapState> {
+public class MapViewModel extends ViewModel {
     public TileFactoryInfo info;
     public static final double LAT = 43.65;
     public static final double LON = -79.38;
@@ -25,8 +25,6 @@ public class MapViewModel extends ViewModel<MapState> {
 
         // Create a TileFactoryInfo for OpenStreetMap
         info = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
-
-        setState(new MapState());
     }
 
     public Set<Waypoint> getBusLocations() { return busLocations; }

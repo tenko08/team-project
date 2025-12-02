@@ -1,16 +1,18 @@
 @startuml
 
-class MapView
 class MapController
 class MapInputBoundary
 class MapInteractor
 class MapOutputBoundary
 class MapPresenter
-class MapViewModel
 class MapInputData
 class MapOutputData
 class BusIcon
 class RouteShape
+class MapViewModel
+class RouteShapeDataAccessInterface
+class RouteShapeDataAccessObject
+class MapView
 
 MapInputBoundary <|.. MapInteractor
 MapOutputBoundary <|.. MapPresenter
@@ -23,6 +25,8 @@ MapInteractor --> MapInputData
 MapInteractor --> MapOutputData
 MapInteractor --> BusIcon
 MapInteractor --> RouteShape
+MapInteractor --> RouteShapeDataAccessInterface
+RouteShapeDataAccessInterface <|.. RouteShapeDataAccessObject
 MapView --> MapController
 MapPresenter --> MapViewModel
 
