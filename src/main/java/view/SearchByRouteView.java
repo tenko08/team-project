@@ -164,11 +164,11 @@ public class SearchByRouteView extends JPanel {
                         .append(String.format("%.6f", position.getLongitude()))
                         .append(")\n");
                 sb.append("  Bearing: ").append(String.format("%.1f", position.getBearing())).append("°\n");
-                sb.append("  Speed: ").append(String.format("%.1f", position.getSpeed())).append(" m/s\n");
+                sb.append("  Speed: ").append(String.format("%.1f", position.getSpeed())).append(" m/s\n").append("\n");;
             } else {
                 sb.append("  Location: Not available\n");
             }
-            sb.append("  Occupancy: ").append(bus.getOccupancy()).append("\n\n");
+//            sb.append("  Occupancy: ").append(bus.getOccupancy()).append("\n\n");
         }
 
         if (cached) {
