@@ -1,5 +1,6 @@
 package interface_adapter.map;
 
+import entities.BusIcon;
 import org.jxmapviewer.viewer.DefaultWaypoint;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.Waypoint;
@@ -24,7 +25,7 @@ public class MapPresenter implements MapOutputBoundary {
     public void prepareBusView(BusListOutput busList) {
         ArrayList<Waypoint> waypoints = new ArrayList<>();
         for (GeoPosition pos : busList) {
-            waypoints.add(new DefaultWaypoint(pos));
+            waypoints.add(new BusIcon(pos));
         }
         fireWaypointsChanged(new HashSet<Waypoint>(waypoints));
     }

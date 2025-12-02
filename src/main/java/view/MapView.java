@@ -19,7 +19,6 @@ import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import interface_adapter.map.MapViewModel;
-import interface_adapter.map.MapController;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
@@ -30,7 +29,7 @@ public class MapView extends JPanel implements PropertyChangeListener {
     private JXMapViewer mapViewer;
     private TileFactoryInfo info;
     private DefaultTileFactory tileFactory;
-    private WaypointPainter<Waypoint> waypointPainter = new WaypointPainter<>();
+    private WaypointPainter busIconPainter = new WaypointPainter();
 
     public MapView(MapViewModel mapViewModel) {
         this.mapViewModel = mapViewModel;
@@ -61,7 +60,8 @@ public class MapView extends JPanel implements PropertyChangeListener {
 
         mapViewer.addKeyListener(new PanKeyListener(mapViewer));
 
-        mapViewer.setOverlayPainter(waypointPainter);
+        mapViewer.setOverlayPainter(busIconPainter);
+        busIconPainter.setRenderer(new FancyWaypointRenderer());
 
         // Ensure the map view fills available space
         add(mapViewer, BorderLayout.CENTER);
@@ -81,6 +81,6 @@ public class MapView extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        waypointPainter.setWaypoints((Set<? extends Waypoint>) evt.getNewValue());
+        busIconPainter.setWaypoints((Set<? extends Waypoint>) evt.getNewValue());
     }
 }
