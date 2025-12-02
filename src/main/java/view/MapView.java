@@ -95,11 +95,11 @@ public class MapView extends JPanel implements PropertyChangeListener {
         if (evt.getPropertyName().equals("route")) {
             painters = new ArrayList<>();
             busIconPainter.setWaypoints(mapViewModel.getBusLocations());
-            painters.add(busIconPainter);
             List<List<GeoPosition>> shapes = mapViewModel.getRouteShapePoints();
             for (List shape : shapes) {
                 painters.add(new RoutePainter(shape));
             }
+            painters.add(busIconPainter);
         }
         else if (evt.getPropertyName().equals("cursorWaypoint")) {
             Set s = cursorWaypointPainter.getWaypoints();
