@@ -13,10 +13,6 @@ A desktop Swing application that helps riders plan TTC bus trips using live data
 - Maven 3.8+
 - An IDE (IntelliJ IDEA recommended) for running the desktop app
 
-## Build and Test
-From the project root:
-- Build: `mvn -q -DskipTests=false clean test`
-- If you prefer to just compile: `mvn -q -DskipTests clean package`
 
 ## Run the App
 The project is a Swing application. The typical way to run it is from your IDE:
