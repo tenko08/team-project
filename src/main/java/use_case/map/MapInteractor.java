@@ -23,6 +23,7 @@ public class MapInteractor implements MapInputBoundary {
     private boolean cursorWaypointExists = false;
     private BusDataBase busDatabase = new BusDataBaseAPI();
     private int routeOfFocus = -1;
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     public MapInteractor(RouteShapeDataAccessInterface routeShapeDataAccessInterface,
                          MapOutputBoundary mapOutputBoundary) {
@@ -36,7 +37,6 @@ public class MapInteractor implements MapInputBoundary {
                 }
             }
         };
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(updateBuses, 0, 10, TimeUnit.SECONDS);
 
     }
@@ -81,5 +81,9 @@ public class MapInteractor implements MapInputBoundary {
 
     public void setFindNearestRouteOutputBoundary(FindNearestRouteOutputBoundary findNearestRoutePresenter) {
         this.findNearestRouteOutputBoundary = findNearestRoutePresenter;
+    }
+
+    public void shutdownExecutor() {
+        executor.shutdown();
     }
 }
