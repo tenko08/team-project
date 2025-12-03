@@ -26,7 +26,6 @@ public class MapPresenter implements MapOutputBoundary {
 
     public void prepareRouteView(MapOutputData mapOutputData) {
         ArrayList<Waypoint> busLocations = new ArrayList<>();
-        ArrayList<Waypoint> routeShapePoints = new ArrayList<>();
         List<GeoPosition> b = mapOutputData.getBuses();
         for (GeoPosition pos : b) {
             busLocations.add(new BusIcon(pos));

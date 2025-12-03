@@ -13,6 +13,8 @@ class MapViewModel
 class RouteShapeDataAccessInterface
 class RouteShapeDataAccessObject
 class MapView
+class BusDatabase
+class BusDataAccessObject
 
 MapInputBoundary <|.. MapInteractor
 MapOutputBoundary <|.. MapPresenter
@@ -29,5 +31,7 @@ MapInteractor --> RouteShapeDataAccessInterface
 RouteShapeDataAccessInterface <|.. RouteShapeDataAccessObject
 MapView --> MapController
 MapPresenter --> MapViewModel
+BusDatabase <|.. BusDataAccessObject
+MapInteractor --> BusDatabase
 
 @enduml

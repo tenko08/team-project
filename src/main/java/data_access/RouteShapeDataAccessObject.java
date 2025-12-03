@@ -28,7 +28,7 @@ public class RouteShapeDataAccessObject implements RouteShapeDataAccessInterface
                 s = cells[0].split("-");
                 if (s.length == 1) {
                     id = Integer.parseInt(cells[0]);
-                    branch = "";
+                    branch = "0";
                 }
                 else {
                     id = Integer.parseInt(s[1]);
@@ -42,12 +42,14 @@ public class RouteShapeDataAccessObject implements RouteShapeDataAccessInterface
                     else {
                         idToRoutes.get(id).add(branch);
                         RouteShape routeShape = new RouteShape(id, branch);
+                        routeShape.addPoint(new GeoPosition(Double.parseDouble(cells[1]), Double.parseDouble(cells[2])));
                         routeToRouteShape.put(id + "-" + branch, routeShape);
                         currentBranch = branch;
                     }
                 }
                 else {
                     RouteShape routeShape = new RouteShape(id, branch);
+                    routeShape.addPoint(new GeoPosition(Double.parseDouble(cells[1]), Double.parseDouble(cells[2])));
                     routeToRouteShape.put(id + "-" + branch, routeShape);
                     ArrayList<String> branches = new ArrayList<>();
                     branches.add(branch);
