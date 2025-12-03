@@ -82,7 +82,5 @@ public class MapInteractor implements MapInputBoundary {
         this.findNearestRouteOutputBoundary = findNearestRoutePresenter;
     }
 
-    public void shutdownExecutor() {
-        executor.shutdown();
-    }
+    // public void shutdownExecutor() { executor.shutdown(); }
 }
